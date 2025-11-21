@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ConstructAI - Stable Release</title>
+    <title>ConstructAI - Stable AI</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -291,6 +291,7 @@
                 <tbody id="mat-list-body"></tbody>
             </table>
         </div>
+        
         <div style="text-align:right; margin-top:15px; font-weight:bold; font-size:1.1rem;">Total: <span id="mat-total-disp">$0</span></div>
         <div style="margin-top:20px;"><button class="btn btn-outline" style="width:100%" onclick="closeModals()">Done</button></div>
     </div>
@@ -300,7 +301,9 @@
 <div id="modalTeam" class="modal-overlay"><div class="modal"><h2>User Profile</h2><input type="hidden" id="t_id"><label>Name</label><input type="text" id="t_name"><label>Role</label><select id="t_role"><option value="Admin">Admin</option><option value="Crew">Crew</option></select><label>Email</label><input type="email" id="t_email"><div style="display:flex; gap:10px;"><button class="btn btn-primary" style="flex:1" onclick="saveTeam()">Save</button><button class="btn btn-outline" style="flex:1" onclick="closeModals()">Cancel</button></div></div></div>
 
 <script>
-    // --- 1. CONFIGURATION (PASTE KEYS HERE) ---
+    // --- 1. KEYS (PASTE BOTH HERE) ---
+    
+    // A. Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyA2HNjITt0civU2SJ4I40XxdnWxryQRDO4",
         authDomain: "construct-erp.firebaseapp.com",
@@ -311,6 +314,7 @@
         appId: "1:737357744238:web:0942d58665f1709278be7f"
     };
 
+    // B. Google Gemini API Key (Use "gemini-1.5-flash")
     const GEMINI_API_KEY = "AIzaSyBzMVExmJp9tFI39CXyY-czbBVRq_p57go"; 
 
     try { firebase.initializeApp(firebaseConfig); } catch(e){console.error(e);}
@@ -371,7 +375,7 @@
 
     function renderAdmin() { renderJobs(); renderCatalog(); renderTeam(); renderDashboard(); initCalendar(); }
 
-    // --- 🧠 GEMINI AI LOGIC (FIXED) ---
+    // --- 🧠 GEMINI AI LOGIC (FIXED MODEL) ---
     function toggleChat() {
         const win = document.getElementById('chat-window');
         win.style.display = win.style.display === 'flex' ? 'none' : 'flex';
@@ -387,7 +391,6 @@
         input.value = '';
         const loadingId = addMsg('Thinking...', 'bot loading');
 
-        // 1. Context Injection
         const activeJobs = db.jobs.filter(j=>j.status!=='Lead' && j.status!=='Canceled');
         const revenue = activeJobs.reduce((a,b)=>a+(b.value||0),0);
         const wip = db.jobs.filter(j=>j.status==='InProgress').map(j=>j.name).join(', ');
@@ -402,9 +405,9 @@
         Answer briefly.
         `;
 
-        // 2. API Call (gemini-pro)
+        // --- UPDATED TO USE GEMINI-1.5-FLASH ---
         try {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -612,6 +615,7 @@
     function delCatalog(id){if(confirm("Delete?")){db.catalog=db.catalog.filter(x=>x.id!=id);saveData();}}
     function openTeamModal(id=null){document.getElementById('modalTeam').style.display='flex'; if(id){const t=db.team.find(x=>x.id==id);document.getElementById('t_id').value=t.id;document.getElementById('t_name').value=t.name;document.getElementById('t_role').value=t.role;document.getElementById('t_email').value=t.email;}else{document.getElementById('t_id').value="NEW";}}
     function renderTeam(){const l=document.getElementById('teamList');l.innerHTML="";db.team.forEach(t=>l.innerHTML+=`<div class="list-card"><div><strong>${t.name}</strong><br>${t.role}</div><button class="btn btn-outline btn-sm" onclick="openTeamModal(${t.id})">Edit</button></div>`);}
+    
     function nav(v,e){document.querySelectorAll('.view-section').forEach(x=>x.classList.remove('active')); document.getElementById('view-'+v).classList.add('active'); document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); e.classList.add('active'); if(v=='calendar')setTimeout(()=>calendar.render(),200);}
     function handleCSV(i){const f=i.files[0]; if(!f)return; const r=new FileReader(); r.onload=e=>{e.target.result.split('\n').slice(1).forEach((row,idx)=>{if(row.trim()){const c=row.split(','); db.jobs.push({id:Date.now()+idx, name:c[1]||"Lead", value:0, status:'Lead'});}}); saveData(); i.value="";}; r.readAsText(f);}
     function notify(m){const d=document.createElement('div');d.className='toast';d.innerText=m;document.getElementById('toast-container').appendChild(d);setTimeout(()=>d.remove(),3000);}
@@ -622,5 +626,3 @@
 </script>
 </body>
 </html>
-
-
