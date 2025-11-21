@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ConstructAI - Platinum</title>
+    <title>ConstructAI - Intelligent ERP</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -38,9 +38,24 @@
         .nav-item { padding: 12px 24px; cursor: pointer; color: #94a3b8; display: flex; gap: 12px; align-items: center; font-weight: 500; transition: 0.2s; border-left: 3px solid transparent; }
         .nav-item:hover, .nav-item.active { background: #1e293b; color: white; border-left-color: var(--accent); }
         
-        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; }
         .content { flex: 1; padding: 32px; overflow-y: auto; }
+
+        /* --- CHATBOT WIDGET --- */
+        #chat-btn { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--accent); color: white; border-radius: 50%; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.5); display: flex; justify-content: center; align-items: center; font-size: 1.5rem; cursor: pointer; z-index: 5000; transition: transform 0.2s; }
+        #chat-btn:hover { transform: scale(1.1); }
+        
+        #chat-window { display: none; position: fixed; bottom: 100px; right: 30px; width: 350px; height: 500px; background: white; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); z-index: 5000; flex-direction: column; overflow: hidden; border: 1px solid var(--border); animation: slideUp 0.3s ease-out; }
+        .chat-header { background: var(--primary); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
+        .chat-body { flex: 1; padding: 15px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 10px; }
+        .chat-footer { padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; background: white; }
+        
+        .msg { padding: 10px 15px; border-radius: 12px; font-size: 0.9rem; max-width: 80%; line-height: 1.4; }
+        .msg.bot { background: white; border: 1px solid var(--border); align-self: flex-start; color: var(--text); border-bottom-left-radius: 2px; }
+        .msg.user { background: var(--accent); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        
+        .chat-input { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px; outline: none; }
 
         /* --- METRICS GRID --- */
         .section-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-light); margin-bottom: 15px; letter-spacing: 0.05em; }
@@ -50,7 +65,7 @@
         .stat-lbl { font-size: 0.75rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; }
         .stat-sub { font-size: 0.75rem; color: var(--success); font-weight: 600; margin-top: 5px; }
 
-        /* --- LISTS --- */
+        /* --- LISTS & BADGES --- */
         .list-stack { display: flex; flex-direction: column; gap: 12px; }
         .list-card { background: var(--surface); padding: 16px 24px; border: 1px solid var(--border); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
         .list-card:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
@@ -78,8 +93,6 @@
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(2px); z-index: 3000; justify-content: center; align-items: center; }
         .modal { background: var(--surface); padding: 32px; width: 100%; max-width: 600px; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
         input, select { width: 100%; padding: 12px; margin: 8px 0 20px 0; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit; font-size: 16px; }
-
-        /* Material Table */
         .mat-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-bottom: 20px; }
         .mat-table th { text-align: left; border-bottom: 2px solid var(--border); padding: 8px; color: var(--text-light); }
         .mat-table td { border-bottom: 1px solid var(--border); padding: 8px; }
@@ -98,10 +111,13 @@
             .list-card > div { width: 100%; }
             .list-actions { display: flex; justify-content: space-between; width: 100%; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
             .mobile-hide { display: none; }
+            #chat-window { width: 100%; height: 100%; top:0; left:0; bottom:0; right:0; border-radius: 0; z-index: 6000; }
+            #chat-btn { bottom: 80px; } /* Move up above nav bar */
         }
         
         .view-section { display: none; } .view-section.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 4000; }
         .toast { background: var(--primary); color: white; padding: 12px 24px; border-radius: 6px; margin-top: 10px; font-weight: 500; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2); }
     </style>
@@ -112,11 +128,26 @@
     <div class="login-card">
         <div style="font-size: 2rem; color: var(--accent); margin-bottom: 1rem;"><i class="fas fa-chart-line"></i></div>
         <h2 style="margin-top: 0;">ConstructAI</h2>
-        <p style="color:#64748b; margin-bottom:20px;">Secure ERP Login</p>
+        <p style="color:#64748b; margin-bottom:20px;">PE & Field Management ERP</p>
         <input type="email" id="email" class="login-input" placeholder="Email Address">
         <input type="password" id="password" class="login-input" placeholder="Password">
         <button class="btn btn-primary" style="width: 100%; font-size:1rem;" onclick="authLogin()">Secure Login</button>
         <div style="margin-top: 20px; font-size: 0.9rem; color: #64748b; cursor: pointer;" onclick="authRegister()">Initialize Admin Account</div>
+    </div>
+</div>
+
+<div id="chat-btn" onclick="toggleChat()"><i class="fas fa-robot"></i></div>
+<div id="chat-window">
+    <div class="chat-header">
+        <div><i class="fas fa-brain"></i> Assistant</div>
+        <i class="fas fa-times" style="cursor:pointer;" onclick="toggleChat()"></i>
+    </div>
+    <div class="chat-body" id="chat-log">
+        <div class="msg bot">Hello! I'm your ConstructAI analyst. Ask me about revenue, job status, or crew availability.</div>
+    </div>
+    <div class="chat-footer">
+        <input type="text" id="chat-input" class="chat-input" placeholder="Ask a question..." onkeypress="handleChatKey(event)">
+        <button class="btn btn-primary" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
     </div>
 </div>
 
@@ -263,7 +294,6 @@
         </div>
         
         <div style="text-align:right; margin-top:15px; font-weight:bold; font-size:1.1rem;">Total: <span id="mat-total-disp">$0</span></div>
-        
         <div style="margin-top:20px;"><button class="btn btn-outline" style="width:100%" onclick="closeModals()">Done</button></div>
     </div>
 </div>
@@ -299,6 +329,7 @@
             document.getElementById('auth-screen').style.display='flex';
             document.getElementById('admin-interface').style.display='none';
             document.getElementById('crew-interface').style.display='none';
+            document.getElementById('chat-btn').style.display='none';
         }
     });
 
@@ -327,6 +358,7 @@
             if (!profile || profile.role === 'Admin') {
                 document.getElementById('admin-interface').style.display = 'flex';
                 document.getElementById('admin-email').innerText = email;
+                document.getElementById('chat-btn').style.display='flex';
                 renderAdmin();
             } else {
                 currentUser = profile;
@@ -337,10 +369,85 @@
         });
     }
 
-    function renderAdmin() {
-        renderJobs(); renderCatalog(); renderTeam(); renderDashboard(); initCalendar();
+    function renderAdmin() { renderJobs(); renderCatalog(); renderTeam(); renderDashboard(); initCalendar(); }
+
+    // --- 🤖 AI CHATBOT LOGIC ---
+    function toggleChat() {
+        const win = document.getElementById('chat-window');
+        win.style.display = win.style.display === 'flex' ? 'none' : 'flex';
     }
 
+    function handleChatKey(e) { if(e.key === 'Enter') sendMessage(); }
+
+    function sendMessage() {
+        const input = document.getElementById('chat-input');
+        const msg = input.value.trim();
+        if(!msg) return;
+
+        // 1. Add User Message
+        addMsg(msg, 'user');
+        input.value = '';
+
+        // 2. AI Processing (Simulated Intelligence)
+        setTimeout(() => {
+            const response = generateAIResponse(msg.toLowerCase());
+            addMsg(response, 'bot');
+        }, 600);
+    }
+
+    function addMsg(text, type) {
+        const log = document.getElementById('chat-log');
+        const div = document.createElement('div');
+        div.className = `msg ${type}`;
+        div.innerText = text;
+        log.appendChild(div);
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function generateAIResponse(query) {
+        // --- INTELLIGENCE ENGINE ---
+        
+        // 1. Revenue & Finance
+        if(query.includes('revenue') || query.includes('income') || query.includes('money')) {
+            const active = db.jobs.filter(j=>j.status!=='Lead' && j.status!=='Canceled');
+            const rev = active.reduce((a,b)=>a+(b.value||0),0);
+            return `Our current gross revenue from active and completed jobs is $${rev.toLocaleString()}.`;
+        }
+        
+        // 2. Profit
+        if(query.includes('profit') || query.includes('margin')) {
+            const active = db.jobs.filter(j=>j.status!=='Lead' && j.status!=='Canceled');
+            const rev = active.reduce((a,b)=>a+(b.value||0),0);
+            const cost = active.reduce((a,b)=>a+(b.materials?b.materials.reduce((x,y)=>x+y.total,0):0),0);
+            const profit = rev - cost;
+            const margin = rev > 0 ? Math.round((profit/rev)*100) : 0;
+            return `Net Profit is $${profit.toLocaleString()} with an overall margin of ${margin}%.`;
+        }
+
+        // 3. Job Status
+        if(query.includes('active') || query.includes('jobs') || query.includes('busy')) {
+            const wip = db.jobs.filter(j=>j.status==='InProgress');
+            if(wip.length === 0) return "No jobs are currently in progress.";
+            const names = wip.map(j=>j.name).join(', ');
+            return `We have ${wip.length} active jobs: ${names}.`;
+        }
+
+        // 4. Crew/Team
+        if(query.includes('crew') || query.includes('who') || query.includes('team')) {
+            return `We have ${db.team.length} team members registered in the workforce directory.`;
+        }
+
+        // 5. Leads
+        if(query.includes('lead') || query.includes('new')) {
+            const leads = db.jobs.filter(j=>j.status==='Lead');
+            return `There are ${leads.length} leads in the pipeline waiting for action.`;
+        }
+
+        // Default
+        return "I can help with financial summaries, job status, or crew details. Try asking 'What is our revenue?' or 'Who is active?'.";
+    }
+
+    // --- STANDARD RENDERERS ---
     function renderJobs(f="") {
         const l = document.getElementById('jobList'); l.innerHTML="";
         db.jobs.filter(j=>j.name.toLowerCase().includes(f.toLowerCase())).forEach(j => {
@@ -376,21 +483,15 @@
         
         myJobs.forEach(j => {
             const addr = j.address ? `<a href="https://maps.google.com/?q=${encodeURIComponent(j.address)}" target="_blank" style="color:var(--accent); text-decoration:none;">${j.address}</a>` : 'No Address';
-            // NEW: Format dates nicely for Crew
             const startStr = j.start ? new Date(j.start).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : "TBD";
             const endStr = j.end ? new Date(j.end).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : "TBD";
 
             l.innerHTML += `
             <div class="job-card-mobile">
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span class="badge badge-${j.status}">${j.status}</span></div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span class="badge badge-${j.status}">${j.status}</span> <b>${new Date(j.start).toLocaleDateString()}</b></div>
                 <h3 style="margin:0;">${j.name}</h3>
                 <p style="color:#64748b; font-size:0.9rem; margin-top:5px;">${addr}</p>
-                
-                <div class="mobile-meta">
-                    <div><strong>Start:</strong><br>${startStr}</div>
-                    <div><strong>Est. Completion:</strong><br>${endStr}</div>
-                </div>
-
+                <div class="mobile-meta"><div><strong>Start:</strong><br>${startStr}</div><div><strong>Est. Completion:</strong><br>${endStr}</div></div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:15px;">
                     ${j.status==='Scheduled' ? `<button class="btn btn-primary" onclick="setStatus(${j.id},'InProgress')">Start</button>` : `<button class="btn btn-outline" disabled>Started</button>`}
                     ${j.status==='InProgress' ? `<button class="btn btn-success" onclick="setStatus(${j.id},'Done')">Complete</button>` : `<button class="btn btn-outline" disabled>Done</button>`}
@@ -403,7 +504,6 @@
         const active = db.jobs.filter(j=>j.status!=='Lead' && j.status!=='Canceled');
         const completed = db.jobs.filter(j=>j.status==='Done');
         const leads = db.jobs.filter(j=>j.status==='Lead');
-        
         const rev = active.reduce((a,b)=>a+(b.value||0),0); 
         const cost = active.reduce((a,b)=>a+(b.materials?b.materials.reduce((x,y)=>x+y.total,0):0),0);
         const profit = rev - cost;
@@ -414,7 +514,6 @@
         document.getElementById('kpi-net').innerText = "$" + profit.toLocaleString();
         document.getElementById('kpi-ticket').innerText = "$" + avgTicket.toLocaleString();
         document.getElementById('kpi-count').innerText = active.length + " Active Jobs";
-
         document.getElementById('op-leads').innerText = leads.length;
         document.getElementById('op-wip').innerText = db.jobs.filter(j=>j.status==='InProgress').length;
         document.getElementById('op-done').innerText = completed.length;
@@ -472,7 +571,7 @@
         saveData(); closeModals(); notify("User Saved");
     }
 
-    // --- ADVANCED MATERIAL MANAGEMENT (Add/Remove) ---
+    // --- ADVANCED MATERIAL MANAGEMENT ---
     function manageMaterials(jid) {
         document.getElementById('modalMat').style.display='flex'; 
         document.getElementById('m_jid').value=jid; 
@@ -494,15 +593,13 @@
         if(!j.materials) j.materials=[]; 
         j.materials.push({name:item.name, cost:item.cost, qty, total:item.cost*qty}); 
         saveData(); 
-        renderMaterialList(jid); // Refresh the list in modal
-        notify("Material Added"); 
+        renderMaterialList(jid); notify("Material Added"); 
     }
 
     function removeMaterial(jid, index) {
         const j = db.jobs.find(x => x.id == jid);
-        j.materials.splice(index, 1); // Remove item
-        saveData();
-        renderMaterialList(jid); // Refresh list
+        j.materials.splice(index, 1); 
+        saveData(); renderMaterialList(jid); 
     }
 
     function renderMaterialList(jid) {
@@ -514,14 +611,7 @@
         if(j.materials && j.materials.length > 0) {
             j.materials.forEach((m, index) => {
                 total += m.total;
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${m.name}</td>
-                        <td>${m.qty}</td>
-                        <td>$${m.total}</td>
-                        <td style="text-align:right;"><i class="fas fa-trash" style="color:var(--danger); cursor:pointer;" onclick="removeMaterial(${jid}, ${index})"></i></td>
-                    </tr>
-                `;
+                tbody.innerHTML += `<tr><td>${m.name}</td><td>${m.qty}</td><td>$${m.total}</td><td style="text-align:right;"><i class="fas fa-trash" style="color:var(--danger); cursor:pointer;" onclick="removeMaterial(${jid}, ${index})"></i></td></tr>`;
             });
         } else {
             tbody.innerHTML = "<tr><td colspan='4' style='color:#999; text-align:center;'>No materials added.</td></tr>";
@@ -535,19 +625,9 @@
         calendar=new FullCalendar.Calendar(document.getElementById('calendar'),{
             initialView: window.innerWidth<768?'listWeek':'dayGridMonth', 
             headerToolbar:{left:'prev,next',center:'title',right:window.innerWidth<768?'':'dayGridMonth,timeGridWeek'}, 
-            
-            // 1. Click to Edit Logic
-            eventClick: function(info) {
-                // The ID is passed as string, convert to Number for lookup
-                openJobModal(Number(info.event.id));
-            },
-
+            eventClick: function(info) { openJobModal(Number(info.event.id)); },
             events: db.jobs.filter(j=>j.start).map(j=>({
-                id: j.id, // Pass ID to event for click handler
-                title: j.name,
-                start: j.start,
-                end: j.end,
-                // 2. Visual Coding
+                id: j.id, title: j.name, start: j.start, end: j.end,
                 backgroundColor: j.status==='Scheduled'?'#f59e0b':(j.status==='InProgress'?'#7e22ce':(j.status==='Done'?'#10b981':'#64748b')),
                 borderColor: 'transparent'
             }))
@@ -557,15 +637,12 @@
 
     // --- HELPERS ---
     function openJobModal(id=null) { document.getElementById('modalJob').style.display='flex'; const s=document.getElementById('j_foreman'); s.innerHTML='<option value="">Unassigned</option>'; db.team.forEach(t=>s.innerHTML+=`<option value="${t.id}">${t.name}</option>`); if(id){const j=db.jobs.find(x=>x.id==id); document.getElementById('j_id').value=j.id; document.getElementById('j_name').value=j.name; document.getElementById('j_val').value=j.value; document.getElementById('j_status').value=j.status; document.getElementById('j_start').value=j.start; document.getElementById('j_end').value=j.end; document.getElementById('j_address').value=j.address||""; document.getElementById('j_foreman').value=j.foremanId||"";}else{document.getElementById('j_id').value="NEW"; document.getElementById('j_name').value="";} }
-    
     function openCatalogModal(id=null){document.getElementById('modalCat').style.display='flex'; if(id){const c=db.catalog.find(x=>x.id==id);document.getElementById('c_id').value=c.id;document.getElementById('c_name').value=c.name;document.getElementById('c_vendor').value=c.vendor;document.getElementById('c_cost').value=c.cost;}else{document.getElementById('c_id').value="NEW";}}
     function saveCatalog(){const id=document.getElementById('c_id').value; const obj={id:id=="NEW"?Date.now():Number(id),name:document.getElementById('c_name').value,vendor:document.getElementById('c_vendor').value,cost:Number(document.getElementById('c_cost').value)}; if(id=="NEW")db.catalog.push(obj); else db.catalog[db.catalog.findIndex(x=>x.id==id)]=obj; saveData(); closeModals();}
     function renderCatalog(){const l=document.getElementById('catalogList');l.innerHTML="";db.catalog.forEach(c=>l.innerHTML+=`<div class="list-card"><div><strong>${c.name}</strong><br>${c.vendor}</div><div>$${c.cost}</div><button class="btn btn-outline btn-sm" onclick="openCatalogModal(${c.id})">Edit</button></div>`);}
     function delCatalog(id){if(confirm("Delete?")){db.catalog=db.catalog.filter(x=>x.id!=id);saveData();}}
-
     function openTeamModal(id=null){document.getElementById('modalTeam').style.display='flex'; if(id){const t=db.team.find(x=>x.id==id);document.getElementById('t_id').value=t.id;document.getElementById('t_name').value=t.name;document.getElementById('t_role').value=t.role;document.getElementById('t_email').value=t.email;}else{document.getElementById('t_id').value="NEW";}}
     function renderTeam(){const l=document.getElementById('teamList');l.innerHTML="";db.team.forEach(t=>l.innerHTML+=`<div class="list-card"><div><strong>${t.name}</strong><br>${t.role}</div><button class="btn btn-outline btn-sm" onclick="openTeamModal(${t.id})">Edit</button></div>`);}
-    
     function nav(v,e){document.querySelectorAll('.view-section').forEach(x=>x.classList.remove('active')); document.getElementById('view-'+v).classList.add('active'); document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); e.classList.add('active'); if(v=='calendar')setTimeout(()=>calendar.render(),200);}
     function handleCSV(i){const f=i.files[0]; if(!f)return; const r=new FileReader(); r.onload=e=>{e.target.result.split('\n').slice(1).forEach((row,idx)=>{if(row.trim()){const c=row.split(','); db.jobs.push({id:Date.now()+idx, name:c[1]||"Lead", value:0, status:'Lead'});}}); saveData(); i.value="";}; r.readAsText(f);}
     function notify(m){const d=document.createElement('div');d.className='toast';d.innerText=m;document.getElementById('toast-container').appendChild(d);setTimeout(()=>d.remove(),3000);}
