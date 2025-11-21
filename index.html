@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ConstructAI - Final Fixed</title>
+    <title>ConstructAI - Stable Release</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -59,7 +59,7 @@
         /* --- METRICS GRID --- */
         .section-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-light); margin-bottom: 15px; letter-spacing: 0.05em; }
         .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 32px; }
-        .stat-card { background: var(--surface); padding: 20px; border-radius: 8px; border: 1px solid var(--border); display:flex; flex-direction:column; justify-content:space-between; }
+        .stat-card { background: var(--surface); padding: 20px; border-radius: 8px; border: 1px solid var(--border); display:flex; flex-direction:column; justify-content:space-between; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); }
         .stat-val { font-size: 1.75rem; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
         .stat-lbl { font-size: 0.75rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; }
         .stat-sub { font-size: 0.75rem; color: var(--success); font-weight: 600; margin-top: 5px; }
@@ -67,7 +67,7 @@
         /* --- LISTS --- */
         .list-stack { display: flex; flex-direction: column; gap: 12px; }
         .list-card { background: var(--surface); padding: 16px 24px; border: 1px solid var(--border); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-        .list-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+        .list-card:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
 
         .badge { padding: 4px 10px; border-radius: 99px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; display: inline-block; }
         .badge-Lead { background: #e0f2fe; color: #0369a1; } 
@@ -142,7 +142,7 @@
         <i class="fas fa-times" style="cursor:pointer;" onclick="toggleChat()"></i>
     </div>
     <div class="chat-body" id="chat-log">
-        <div class="msg bot">Hello. I'm connected to your ERP data. Ask me to summarize your revenue, identify risks, or list active jobs.</div>
+        <div class="msg bot">Hello. I'm connected to your ERP data. Ask me to summarize revenue, risks, or schedule.</div>
     </div>
     <div class="chat-footer">
         <input type="text" id="chat-input" class="chat-input" placeholder="Ask Gemini..." onkeypress="handleChatKey(event)">
@@ -291,7 +291,6 @@
                 <tbody id="mat-list-body"></tbody>
             </table>
         </div>
-        
         <div style="text-align:right; margin-top:15px; font-weight:bold; font-size:1.1rem;">Total: <span id="mat-total-disp">$0</span></div>
         <div style="margin-top:20px;"><button class="btn btn-outline" style="width:100%" onclick="closeModals()">Done</button></div>
     </div>
@@ -312,7 +311,7 @@
         appId: "1:737357744238:web:0942d58665f1709278be7f"
     };
 
-    const GEMINI_API_KEY = "AIzaSyBzMVExmJp9tFI39CXyY-czbBVRq_p57go";
+    const GEMINI_API_KEY = "AIzaSyBzMVExmJp9tFI39CXyY-czbBVRq_p57go"; 
 
     try { firebase.initializeApp(firebaseConfig); } catch(e){console.error(e);}
     const auth = firebase.auth();
@@ -372,7 +371,7 @@
 
     function renderAdmin() { renderJobs(); renderCatalog(); renderTeam(); renderDashboard(); initCalendar(); }
 
-    // --- AI LOGIC ---
+    // --- 🧠 GEMINI AI LOGIC (FIXED) ---
     function toggleChat() {
         const win = document.getElementById('chat-window');
         win.style.display = win.style.display === 'flex' ? 'none' : 'flex';
@@ -388,21 +387,39 @@
         input.value = '';
         const loadingId = addMsg('Thinking...', 'bot loading');
 
+        // 1. Context Injection
         const activeJobs = db.jobs.filter(j=>j.status!=='Lead' && j.status!=='Canceled');
         const revenue = activeJobs.reduce((a,b)=>a+(b.value||0),0);
-        const context = `System: Revenue $${revenue}. Active Jobs: ${activeJobs.length}. Total Crew: ${db.team.length}. User Question: ${msg}`;
+        const wip = db.jobs.filter(j=>j.status==='InProgress').map(j=>j.name).join(', ');
+        
+        const context = `
+        System Context:
+        - Revenue: $${revenue}
+        - Active Jobs Count: ${activeJobs.length}
+        - Jobs In Progress: ${wip || 'None'}
+        
+        User Question: ${msg}
+        Answer briefly.
+        `;
 
+        // 2. API Call (gemini-pro)
         try {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-            const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: context }] }] }) });
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: context }] }] })
+            });
+
             const data = await response.json();
             
-            if(data.error) throw new Error(data.error.message);
-            if(!data.candidates) throw new Error("Safety Block");
+            if (data.error) throw new Error(data.error.message);
+            if (!data.candidates) throw new Error("AI Safety Block");
 
             const aiText = data.candidates[0].content.parts[0].text;
             document.getElementById(loadingId).remove();
             addMsg(marked.parse(aiText), 'bot');
+
         } catch (error) {
             document.getElementById(loadingId).innerHTML = `<span style="color:red">Error: ${error.message}</span>`;
         }
@@ -509,6 +526,29 @@
         });
     }
 
+    // --- ACTIONS ---
+    function saveJob() {
+        const id = document.getElementById('j_id').value;
+        const obj = {
+            id: id === "NEW" ? Date.now() : Number(id), 
+            name: document.getElementById('j_name').value,
+            value: Number(document.getElementById('j_val').value),
+            status: document.getElementById('j_status').value,
+            start: document.getElementById('j_start').value,
+            end: document.getElementById('j_end').value,
+            foremanId: Number(document.getElementById('j_foreman').value), 
+            address: document.getElementById('j_address').value,
+            materials: id !== "NEW" ? (db.jobs.find(x => x.id == id)?.materials || []) : []
+        };
+        if(id === "NEW") db.jobs.push(obj);
+        else { const idx = db.jobs.findIndex(x => x.id == id); if(idx !== -1) db.jobs[idx] = obj; }
+        saveData(); closeModals(); notify("Job Saved");
+    }
+
+    function setStatus(jid, s) { const j=db.jobs.find(x=>x.id==jid); if(j){j.status=s; saveData(); notify("Status Updated");} }
+    function delJob(id) { if(confirm("Delete?")) { db.jobs=db.jobs.filter(x=>x.id!=id); saveData(); notify("Deleted"); } }
+    function saveTeam() { const id=document.getElementById('t_id').value; const obj={id: id==="NEW"?Date.now():Number(id), name:document.getElementById('t_name').value, role:document.getElementById('t_role').value, email:document.getElementById('t_email').value.trim()}; if(id==="NEW") db.team.push(obj); else db.team[db.team.findIndex(x=>x.id==id)]=obj; saveData(); closeModals(); notify("User Saved"); }
+
     function manageMaterials(jid) {
         document.getElementById('modalMat').style.display='flex'; 
         document.getElementById('m_jid').value=jid; 
@@ -565,36 +605,13 @@
         calendar.render();
     }
 
-    // --- CRUD & UTILS ---
-    function saveJob() {
-        const id = document.getElementById('j_id').value;
-        const obj = {
-            id: id === "NEW" ? Date.now() : Number(id), 
-            name: document.getElementById('j_name').value,
-            value: Number(document.getElementById('j_val').value),
-            status: document.getElementById('j_status').value,
-            start: document.getElementById('j_start').value,
-            end: document.getElementById('j_end').value,
-            foremanId: Number(document.getElementById('j_foreman').value), 
-            address: document.getElementById('j_address').value,
-            materials: id !== "NEW" ? (db.jobs.find(x => x.id == id)?.materials || []) : []
-        };
-        if(id === "NEW") db.jobs.push(obj); else { const idx = db.jobs.findIndex(x => x.id == id); if(idx !== -1) db.jobs[idx] = obj; }
-        saveData(); closeModals(); notify("Job Saved");
-    }
-
-    function setStatus(jid, s) { const j=db.jobs.find(x=>x.id==jid); if(j){j.status=s; saveData(); notify("Status Updated");} }
-    function delJob(id) { if(confirm("Delete?")) { db.jobs=db.jobs.filter(x=>x.id!=id); saveData(); notify("Deleted"); } }
-    function saveTeam() { const id=document.getElementById('t_id').value; const obj={id: id==="NEW"?Date.now():Number(id), name:document.getElementById('t_name').value, role:document.getElementById('t_role').value, email:document.getElementById('t_email').value.trim()}; if(id==="NEW") db.team.push(obj); else db.team[db.team.findIndex(x=>x.id==id)]=obj; saveData(); closeModals(); notify("User Saved"); }
-    function saveCatalog(){const id=document.getElementById('c_id').value; const obj={id:id=="NEW"?Date.now():Number(id),name:document.getElementById('c_name').value,vendor:document.getElementById('c_vendor').value,cost:Number(document.getElementById('c_cost').value)}; if(id=="NEW")db.catalog.push(obj); else db.catalog[db.catalog.findIndex(x=>x.id==id)]=obj; saveData(); closeModals();}
-    function delCatalog(id){if(confirm("Delete?")){db.catalog=db.catalog.filter(x=>x.id!=id);saveData();}}
-
     function openJobModal(id=null) { document.getElementById('modalJob').style.display='flex'; const s=document.getElementById('j_foreman'); s.innerHTML='<option value="">Unassigned</option>'; db.team.forEach(t=>s.innerHTML+=`<option value="${t.id}">${t.name}</option>`); if(id){const j=db.jobs.find(x=>x.id==id); document.getElementById('j_id').value=j.id; document.getElementById('j_name').value=j.name; document.getElementById('j_val').value=j.value; document.getElementById('j_status').value=j.status; document.getElementById('j_start').value=j.start; document.getElementById('j_end').value=j.end; document.getElementById('j_address').value=j.address||""; document.getElementById('j_foreman').value=j.foremanId||"";}else{document.getElementById('j_id').value="NEW"; document.getElementById('j_name').value="";} }
     function openCatalogModal(id=null){document.getElementById('modalCat').style.display='flex'; if(id){const c=db.catalog.find(x=>x.id==id);document.getElementById('c_id').value=c.id;document.getElementById('c_name').value=c.name;document.getElementById('c_vendor').value=c.vendor;document.getElementById('c_cost').value=c.cost;}else{document.getElementById('c_id').value="NEW";}}
+    function saveCatalog(){const id=document.getElementById('c_id').value; const obj={id:id=="NEW"?Date.now():Number(id),name:document.getElementById('c_name').value,vendor:document.getElementById('c_vendor').value,cost:Number(document.getElementById('c_cost').value)}; if(id=="NEW")db.catalog.push(obj); else db.catalog[db.catalog.findIndex(x=>x.id==id)]=obj; saveData(); closeModals();}
+    function renderCatalog(){const l=document.getElementById('catalogList');l.innerHTML="";db.catalog.forEach(c=>l.innerHTML+=`<div class="list-card"><div><strong>${c.name}</strong><br>${c.vendor}</div><div>$${c.cost}</div><button class="btn btn-outline btn-sm" onclick="openCatalogModal(${c.id})">Edit</button></div>`);}
+    function delCatalog(id){if(confirm("Delete?")){db.catalog=db.catalog.filter(x=>x.id!=id);saveData();}}
     function openTeamModal(id=null){document.getElementById('modalTeam').style.display='flex'; if(id){const t=db.team.find(x=>x.id==id);document.getElementById('t_id').value=t.id;document.getElementById('t_name').value=t.name;document.getElementById('t_role').value=t.role;document.getElementById('t_email').value=t.email;}else{document.getElementById('t_id').value="NEW";}}
-    function renderCatalog(){const l=document.getElementById('catalogList');l.innerHTML="";db.catalog.forEach(c=>l.innerHTML+=`<div class="list-card"><div><strong>${c.name}</strong><br>${c.vendor}</div><div>$${c.cost}</div><div style="display:flex; gap:5px;"><button class="btn btn-outline btn-sm" onclick="openCatalogModal(${c.id})">Edit</button><button class="btn btn-danger btn-sm" onclick="delCatalog(${c.id})"><i class="fas fa-trash"></i></button></div></div>`);}
     function renderTeam(){const l=document.getElementById('teamList');l.innerHTML="";db.team.forEach(t=>l.innerHTML+=`<div class="list-card"><div><strong>${t.name}</strong><br>${t.role}</div><button class="btn btn-outline btn-sm" onclick="openTeamModal(${t.id})">Edit</button></div>`);}
-    
     function nav(v,e){document.querySelectorAll('.view-section').forEach(x=>x.classList.remove('active')); document.getElementById('view-'+v).classList.add('active'); document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); e.classList.add('active'); if(v=='calendar')setTimeout(()=>calendar.render(),200);}
     function handleCSV(i){const f=i.files[0]; if(!f)return; const r=new FileReader(); r.onload=e=>{e.target.result.split('\n').slice(1).forEach((row,idx)=>{if(row.trim()){const c=row.split(','); db.jobs.push({id:Date.now()+idx, name:c[1]||"Lead", value:0, status:'Lead'});}}); saveData(); i.value="";}; r.readAsText(f);}
     function notify(m){const d=document.createElement('div');d.className='toast';d.innerText=m;document.getElementById('toast-container').appendChild(d);setTimeout(()=>d.remove(),3000);}
