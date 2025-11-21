@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ConstructAI - Intelligent ERP</title>
+    <title>ConstructAI - Gemini Powered</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -13,6 +13,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
         :root {
@@ -42,20 +43,25 @@
         .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; }
         .content { flex: 1; padding: 32px; overflow-y: auto; }
 
-        /* --- CHATBOT WIDGET --- */
-        #chat-btn { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--accent); color: white; border-radius: 50%; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.5); display: flex; justify-content: center; align-items: center; font-size: 1.5rem; cursor: pointer; z-index: 5000; transition: transform 0.2s; }
+        /* --- CHATBOT WIDGET (GEMINI) --- */
+        #chat-btn { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; border-radius: 50%; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.5); display: flex; justify-content: center; align-items: center; font-size: 1.5rem; cursor: pointer; z-index: 5000; transition: transform 0.2s; }
         #chat-btn:hover { transform: scale(1.1); }
         
-        #chat-window { display: none; position: fixed; bottom: 100px; right: 30px; width: 350px; height: 500px; background: white; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); z-index: 5000; flex-direction: column; overflow: hidden; border: 1px solid var(--border); animation: slideUp 0.3s ease-out; }
-        .chat-header { background: var(--primary); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
-        .chat-body { flex: 1; padding: 15px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 10px; }
+        #chat-window { display: none; position: fixed; bottom: 100px; right: 30px; width: 380px; height: 550px; background: white; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); z-index: 5000; flex-direction: column; overflow: hidden; border: 1px solid var(--border); animation: slideUp 0.3s ease-out; }
+        .chat-header { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
+        .chat-body { flex: 1; padding: 15px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 12px; }
         .chat-footer { padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; background: white; }
         
-        .msg { padding: 10px 15px; border-radius: 12px; font-size: 0.9rem; max-width: 80%; line-height: 1.4; }
+        .msg { padding: 12px 16px; border-radius: 12px; font-size: 0.9rem; max-width: 85%; line-height: 1.5; word-wrap: break-word; }
         .msg.bot { background: white; border: 1px solid var(--border); align-self: flex-start; color: var(--text); border-bottom-left-radius: 2px; }
-        .msg.user { background: var(--accent); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .msg.user { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .msg.loading { font-style: italic; color: #94a3b8; background: transparent; border: none; padding: 0; margin-left: 10px;}
         
-        .chat-input { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px; outline: none; }
+        /* Markdown Styles inside Chat */
+        .msg.bot strong { color: var(--primary); font-weight: 800; }
+        .msg.bot ul { padding-left: 20px; margin: 5px 0; }
+
+        .chat-input { flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 8px; outline: none; }
 
         /* --- METRICS GRID --- */
         .section-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-light); margin-bottom: 15px; letter-spacing: 0.05em; }
@@ -112,7 +118,7 @@
             .list-actions { display: flex; justify-content: space-between; width: 100%; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
             .mobile-hide { display: none; }
             #chat-window { width: 100%; height: 100%; top:0; left:0; bottom:0; right:0; border-radius: 0; z-index: 6000; }
-            #chat-btn { bottom: 80px; } /* Move up above nav bar */
+            #chat-btn { bottom: 80px; } 
         }
         
         .view-section { display: none; } .view-section.active { display: block; animation: fadeIn 0.3s; }
@@ -128,7 +134,7 @@
     <div class="login-card">
         <div style="font-size: 2rem; color: var(--accent); margin-bottom: 1rem;"><i class="fas fa-chart-line"></i></div>
         <h2 style="margin-top: 0;">ConstructAI</h2>
-        <p style="color:#64748b; margin-bottom:20px;">PE & Field Management ERP</p>
+        <p style="color:#64748b; margin-bottom:20px;">Gemini-Powered ERP</p>
         <input type="email" id="email" class="login-input" placeholder="Email Address">
         <input type="password" id="password" class="login-input" placeholder="Password">
         <button class="btn btn-primary" style="width: 100%; font-size:1rem;" onclick="authLogin()">Secure Login</button>
@@ -136,18 +142,18 @@
     </div>
 </div>
 
-<div id="chat-btn" onclick="toggleChat()"><i class="fas fa-robot"></i></div>
+<div id="chat-btn" onclick="toggleChat()"><i class="fas fa-sparkles"></i></div>
 <div id="chat-window">
     <div class="chat-header">
-        <div><i class="fas fa-brain"></i> Assistant</div>
+        <div><i class="fas fa-robot"></i> AI Analyst</div>
         <i class="fas fa-times" style="cursor:pointer;" onclick="toggleChat()"></i>
     </div>
     <div class="chat-body" id="chat-log">
-        <div class="msg bot">Hello! I'm your ConstructAI analyst. Ask me about revenue, job status, or crew availability.</div>
+        <div class="msg bot">Hello. I'm connected to your ERP data. Ask me to summarize your revenue, identify risks, or list active jobs.</div>
     </div>
     <div class="chat-footer">
-        <input type="text" id="chat-input" class="chat-input" placeholder="Ask a question..." onkeypress="handleChatKey(event)">
-        <button class="btn btn-primary" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+        <input type="text" id="chat-input" class="chat-input" placeholder="Ask Gemini..." onkeypress="handleChatKey(event)">
+        <button class="btn btn-primary" onclick="sendGeminiMessage()"><i class="fas fa-paper-plane"></i></button>
     </div>
 </div>
 
@@ -292,7 +298,6 @@
                 <tbody id="mat-list-body"></tbody>
             </table>
         </div>
-        
         <div style="text-align:right; margin-top:15px; font-weight:bold; font-size:1.1rem;">Total: <span id="mat-total-disp">$0</span></div>
         <div style="margin-top:20px;"><button class="btn btn-outline" style="width:100%" onclick="closeModals()">Done</button></div>
     </div>
@@ -302,7 +307,9 @@
 <div id="modalTeam" class="modal-overlay"><div class="modal"><h2>User Profile</h2><input type="hidden" id="t_id"><label>Name</label><input type="text" id="t_name"><label>Role</label><select id="t_role"><option value="Admin">Admin</option><option value="Crew">Crew</option></select><label>Email</label><input type="email" id="t_email"><div style="display:flex; gap:10px;"><button class="btn btn-primary" style="flex:1" onclick="saveTeam()">Save</button><button class="btn btn-outline" style="flex:1" onclick="closeModals()">Cancel</button></div></div></div>
 
 <script>
-    // --- CONFIG ---
+    // --- 1. KEYS (PASTE BOTH HERE) ---
+    
+    // A. Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyA2HNjITt0civU2SJ4I40XxdnWxryQRDO4",
         authDomain: "construct-erp.firebaseapp.com",
@@ -312,6 +319,9 @@
         messagingSenderId: "737357744238",
         appId: "1:737357744238:web:0942d58665f1709278be7f"
     };
+
+    // B. Google Gemini API Key (Free Tier)
+    const GEMINI_API_KEY = "AIzaSyDRAG2Yn1vgkbRjHr1tPvx18krlUyGX00I"; 
 
     try { firebase.initializeApp(firebaseConfig); } catch(e){console.error(e);}
     const auth = firebase.auth();
@@ -371,80 +381,72 @@
 
     function renderAdmin() { renderJobs(); renderCatalog(); renderTeam(); renderDashboard(); initCalendar(); }
 
-    // --- 🤖 AI CHATBOT LOGIC ---
+    // --- 🧠 GEMINI AI INTEGRATION ---
     function toggleChat() {
         const win = document.getElementById('chat-window');
         win.style.display = win.style.display === 'flex' ? 'none' : 'flex';
     }
 
-    function handleChatKey(e) { if(e.key === 'Enter') sendMessage(); }
+    function handleChatKey(e) { if(e.key === 'Enter') sendGeminiMessage(); }
 
-    function sendMessage() {
+    async function sendGeminiMessage() {
         const input = document.getElementById('chat-input');
         const msg = input.value.trim();
         if(!msg) return;
 
-        // 1. Add User Message
+        // UI
         addMsg(msg, 'user');
         input.value = '';
+        const loadingId = addMsg('Thinking...', 'bot loading');
 
-        // 2. AI Processing (Simulated Intelligence)
-        setTimeout(() => {
-            const response = generateAIResponse(msg.toLowerCase());
-            addMsg(response, 'bot');
-        }, 600);
+        // 1. Prepare Context (RAG - Retrieval Augmented Generation)
+        const activeJobs = db.jobs.filter(j=>j.status!=='Lead' && j.status!=='Canceled');
+        const revenue = activeJobs.reduce((a,b)=>a+(b.value||0),0);
+        const wip = db.jobs.filter(j=>j.status==='InProgress').map(j=>j.name).join(', ');
+        
+        const context = `
+        You are an expert business analyst for a construction company.
+        Here is the real-time database data:
+        - Total Revenue: $${revenue}
+        - Active Jobs Count: ${activeJobs.length}
+        - Jobs In Progress: ${wip || 'None'}
+        - Total Crew Size: ${db.team.length}
+        
+        User Question: ${msg}
+        
+        Answer clearly and professionally in markdown. Keep it brief.
+        `;
+
+        // 2. Call Google Gemini API
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: context }] }] })
+            });
+
+            const data = await response.json();
+            const aiText = data.candidates[0].content.parts[0].text;
+            
+            // Update UI
+            document.getElementById(loadingId).remove();
+            addMsg(marked.parse(aiText), 'bot');
+
+        } catch (error) {
+            document.getElementById(loadingId).innerText = "Error connecting to AI. Check API Key.";
+        }
     }
 
     function addMsg(text, type) {
         const log = document.getElementById('chat-log');
         const div = document.createElement('div');
+        div.id = 'msg-' + Date.now();
         div.className = `msg ${type}`;
-        div.innerText = text;
+        div.innerHTML = text;
         log.appendChild(div);
         log.scrollTop = log.scrollHeight;
-    }
-
-    function generateAIResponse(query) {
-        // --- INTELLIGENCE ENGINE ---
-        
-        // 1. Revenue & Finance
-        if(query.includes('revenue') || query.includes('income') || query.includes('money')) {
-            const active = db.jobs.filter(j=>j.status!=='Lead' && j.status!=='Canceled');
-            const rev = active.reduce((a,b)=>a+(b.value||0),0);
-            return `Our current gross revenue from active and completed jobs is $${rev.toLocaleString()}.`;
-        }
-        
-        // 2. Profit
-        if(query.includes('profit') || query.includes('margin')) {
-            const active = db.jobs.filter(j=>j.status!=='Lead' && j.status!=='Canceled');
-            const rev = active.reduce((a,b)=>a+(b.value||0),0);
-            const cost = active.reduce((a,b)=>a+(b.materials?b.materials.reduce((x,y)=>x+y.total,0):0),0);
-            const profit = rev - cost;
-            const margin = rev > 0 ? Math.round((profit/rev)*100) : 0;
-            return `Net Profit is $${profit.toLocaleString()} with an overall margin of ${margin}%.`;
-        }
-
-        // 3. Job Status
-        if(query.includes('active') || query.includes('jobs') || query.includes('busy')) {
-            const wip = db.jobs.filter(j=>j.status==='InProgress');
-            if(wip.length === 0) return "No jobs are currently in progress.";
-            const names = wip.map(j=>j.name).join(', ');
-            return `We have ${wip.length} active jobs: ${names}.`;
-        }
-
-        // 4. Crew/Team
-        if(query.includes('crew') || query.includes('who') || query.includes('team')) {
-            return `We have ${db.team.length} team members registered in the workforce directory.`;
-        }
-
-        // 5. Leads
-        if(query.includes('lead') || query.includes('new')) {
-            const leads = db.jobs.filter(j=>j.status==='Lead');
-            return `There are ${leads.length} leads in the pipeline waiting for action.`;
-        }
-
-        // Default
-        return "I can help with financial summaries, job status, or crew details. Try asking 'What is our revenue?' or 'Who is active?'.";
+        return div.id;
     }
 
     // --- STANDARD RENDERERS ---
@@ -517,7 +519,6 @@
         document.getElementById('op-leads').innerText = leads.length;
         document.getElementById('op-wip').innerText = db.jobs.filter(j=>j.status==='InProgress').length;
         document.getElementById('op-done').innerText = completed.length;
-        
         const totalOpp = db.jobs.filter(j=>j.status!=='Canceled').length;
         const wins = active.length;
         const rate = totalOpp > 0 ? Math.round((wins/totalOpp)*100) : 0;
@@ -538,7 +539,7 @@
         });
     }
 
-    // --- ACTIONS & SAVES ---
+    // --- ACTIONS ---
     function saveJob() {
         const id = document.getElementById('j_id').value;
         const obj = {
@@ -552,7 +553,6 @@
             address: document.getElementById('j_address').value,
             materials: id !== "NEW" ? (db.jobs.find(x => x.id == id)?.materials || []) : []
         };
-        
         if(id === "NEW") db.jobs.push(obj);
         else {
             const idx = db.jobs.findIndex(x => x.id == id);
@@ -571,14 +571,11 @@
         saveData(); closeModals(); notify("User Saved");
     }
 
-    // --- ADVANCED MATERIAL MANAGEMENT ---
     function manageMaterials(jid) {
         document.getElementById('modalMat').style.display='flex'; 
         document.getElementById('m_jid').value=jid; 
-        
         const s=document.getElementById('m_item'); s.innerHTML=""; 
         db.catalog.forEach(c=>s.innerHTML+=`<option value="${c.id}">${c.name} ($${c.cost})</option>`);
-        
         renderMaterialList(jid);
     }
 
@@ -586,14 +583,11 @@
         const jid=document.getElementById('m_jid').value; 
         const mid=document.getElementById('m_item').value; 
         const qty=Number(document.getElementById('m_qty').value); 
-        
         const j=db.jobs.find(x=>x.id==jid); 
         const item=db.catalog.find(c=>c.id==mid); 
-        
         if(!j.materials) j.materials=[]; 
         j.materials.push({name:item.name, cost:item.cost, qty, total:item.cost*qty}); 
-        saveData(); 
-        renderMaterialList(jid); notify("Material Added"); 
+        saveData(); renderMaterialList(jid); notify("Material Added"); 
     }
 
     function removeMaterial(jid, index) {
@@ -607,7 +601,6 @@
         const tbody = document.getElementById('mat-list-body');
         tbody.innerHTML = "";
         let total = 0;
-
         if(j.materials && j.materials.length > 0) {
             j.materials.forEach((m, index) => {
                 total += m.total;
@@ -619,7 +612,6 @@
         document.getElementById('mat-total-disp').innerText = "$" + total.toLocaleString();
     }
 
-    // --- INTERACTIVE CALENDAR ---
     function initCalendar(){
         if(calendar)return; 
         calendar=new FullCalendar.Calendar(document.getElementById('calendar'),{
@@ -635,7 +627,6 @@
         calendar.render();
     }
 
-    // --- HELPERS ---
     function openJobModal(id=null) { document.getElementById('modalJob').style.display='flex'; const s=document.getElementById('j_foreman'); s.innerHTML='<option value="">Unassigned</option>'; db.team.forEach(t=>s.innerHTML+=`<option value="${t.id}">${t.name}</option>`); if(id){const j=db.jobs.find(x=>x.id==id); document.getElementById('j_id').value=j.id; document.getElementById('j_name').value=j.name; document.getElementById('j_val').value=j.value; document.getElementById('j_status').value=j.status; document.getElementById('j_start').value=j.start; document.getElementById('j_end').value=j.end; document.getElementById('j_address').value=j.address||""; document.getElementById('j_foreman').value=j.foremanId||"";}else{document.getElementById('j_id').value="NEW"; document.getElementById('j_name').value="";} }
     function openCatalogModal(id=null){document.getElementById('modalCat').style.display='flex'; if(id){const c=db.catalog.find(x=>x.id==id);document.getElementById('c_id').value=c.id;document.getElementById('c_name').value=c.name;document.getElementById('c_vendor').value=c.vendor;document.getElementById('c_cost').value=c.cost;}else{document.getElementById('c_id').value="NEW";}}
     function saveCatalog(){const id=document.getElementById('c_id').value; const obj={id:id=="NEW"?Date.now():Number(id),name:document.getElementById('c_name').value,vendor:document.getElementById('c_vendor').value,cost:Number(document.getElementById('c_cost').value)}; if(id=="NEW")db.catalog.push(obj); else db.catalog[db.catalog.findIndex(x=>x.id==id)]=obj; saveData(); closeModals();}
@@ -643,6 +634,7 @@
     function delCatalog(id){if(confirm("Delete?")){db.catalog=db.catalog.filter(x=>x.id!=id);saveData();}}
     function openTeamModal(id=null){document.getElementById('modalTeam').style.display='flex'; if(id){const t=db.team.find(x=>x.id==id);document.getElementById('t_id').value=t.id;document.getElementById('t_name').value=t.name;document.getElementById('t_role').value=t.role;document.getElementById('t_email').value=t.email;}else{document.getElementById('t_id').value="NEW";}}
     function renderTeam(){const l=document.getElementById('teamList');l.innerHTML="";db.team.forEach(t=>l.innerHTML+=`<div class="list-card"><div><strong>${t.name}</strong><br>${t.role}</div><button class="btn btn-outline btn-sm" onclick="openTeamModal(${t.id})">Edit</button></div>`);}
+    
     function nav(v,e){document.querySelectorAll('.view-section').forEach(x=>x.classList.remove('active')); document.getElementById('view-'+v).classList.add('active'); document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); e.classList.add('active'); if(v=='calendar')setTimeout(()=>calendar.render(),200);}
     function handleCSV(i){const f=i.files[0]; if(!f)return; const r=new FileReader(); r.onload=e=>{e.target.result.split('\n').slice(1).forEach((row,idx)=>{if(row.trim()){const c=row.split(','); db.jobs.push({id:Date.now()+idx, name:c[1]||"Lead", value:0, status:'Lead'});}}); saveData(); i.value="";}; r.readAsText(f);}
     function notify(m){const d=document.createElement('div');d.className='toast';d.innerText=m;document.getElementById('toast-container').appendChild(d);setTimeout(()=>d.remove(),3000);}
