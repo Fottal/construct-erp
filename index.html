@@ -245,27 +245,36 @@
     function authLogout() { auth.signOut(); location.reload(); }
 
     // --- 3. INIT APP & RBAC ---
-    function initApp(email) {
-        dbRef.ref().on('value', snap => {
-            const v = snap.val() || {};
-            db.jobs = v.jobs ? Object.values(v.jobs) : [];
-            db.team = v.team ? Object.values(v.team) : [];
-            
-            // Role Check
-            const profile = db.team.find(t => t.email.toLowerCase() === email.toLowerCase());
-            
-            if (!profile || profile.role === 'Admin') {
-                document.getElementById('admin-interface').style.display = 'flex';
-                document.getElementById('admin-email').innerText = email;
-                initAdminFeatures();
-            } else {
-                currentUser = profile;
-                document.getElementById('crew-interface').style.display = 'flex';
-                document.getElementById('crew-name').innerText = profile.name.split(' ')[0];
-                renderCrewDashboard();
-            }
-        });
-    }
+function initApp(email) {
+    // Show a loading indicator if you want, or just wait
+    console.log("Attempting to connect to DB...");
+
+    dbRef.ref().on('value', (snap) => {
+        const v = snap.val() || {};
+        db.jobs = v.jobs ? Object.values(v.jobs) : [];
+        db.team = v.team ? Object.values(v.team) : [];
+        
+        const profile = db.team.find(t => t.email.toLowerCase() === email.toLowerCase());
+        
+        if (!profile || profile.role === 'Admin') {
+            document.getElementById('admin-interface').style.display = 'flex';
+            document.getElementById('admin-email').innerText = email;
+            initAdminFeatures();
+        } else {
+            currentUser = profile;
+            document.getElementById('crew-interface').style.display = 'flex';
+            document.getElementById('crew-name').innerText = profile.name.split(' ')[0];
+            renderCrewDashboard();
+        }
+    }, (error) => {
+        // --- SAFETY CATCH ---
+        console.error(error);
+        alert("Database Error: " + error.message + ". Check your Console (F12) and Firebase Rules.");
+        // Force Logout so they can see the login screen again
+        auth.signOut();
+        location.reload();
+    });
+}
 
     // --- 4. ADMIN FEATURES ---
     function initAdminFeatures() { renderAdminJobs(); renderTeam(); renderDashboard(); initCalendar(); }
