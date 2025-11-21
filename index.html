@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ConstructAI - Core ERP</title>
+    <title>ConstructAI - Management Suite</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -13,6 +13,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
         :root {
@@ -38,9 +39,29 @@
         .nav-item { padding: 12px 24px; cursor: pointer; color: #94a3b8; display: flex; gap: 12px; align-items: center; font-weight: 500; transition: 0.2s; border-left: 3px solid transparent; }
         .nav-item:hover, .nav-item.active { background: #1e293b; color: white; border-left-color: var(--accent); }
         
+        /* User Profile Section in Sidebar */
+        .user-panel { padding: 20px; border-top: 1px solid #334155; background: rgba(0,0,0,0.1); }
+        .user-name { font-weight: 700; font-size: 0.95rem; color: white; }
+        .user-role { font-size: 0.8rem; color: #94a3b8; margin-bottom: 10px; }
+        .user-actions { display: flex; gap: 10px; }
+        .user-btn { background: #334155; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; flex: 1; text-align: center; }
+        .user-btn:hover { background: var(--accent); }
+
         .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; }
         .content { flex: 1; padding: 32px; overflow-y: auto; }
+
+        /* --- CHATBOT --- */
+        #chat-btn { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; border-radius: 50%; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.5); display: flex; justify-content: center; align-items: center; font-size: 1.5rem; cursor: pointer; z-index: 5000; transition: transform 0.2s; }
+        #chat-btn:hover { transform: scale(1.1); }
+        #chat-window { display: none; position: fixed; bottom: 100px; right: 30px; width: 380px; height: 550px; background: white; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); z-index: 5000; flex-direction: column; overflow: hidden; border: 1px solid var(--border); animation: slideUp 0.3s ease-out; }
+        .chat-header { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
+        .chat-body { flex: 1; padding: 15px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 12px; }
+        .chat-footer { padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; background: white; }
+        .msg { padding: 12px 16px; border-radius: 12px; font-size: 0.9rem; max-width: 85%; line-height: 1.5; word-wrap: break-word; }
+        .msg.bot { background: white; border: 1px solid var(--border); align-self: flex-start; color: var(--text); border-bottom-left-radius: 2px; }
+        .msg.user { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .chat-input { flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 8px; outline: none; }
 
         /* --- METRICS GRID --- */
         .section-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-light); margin-bottom: 15px; letter-spacing: 0.05em; }
@@ -96,6 +117,8 @@
             .list-card > div { width: 100%; }
             .list-actions { display: flex; justify-content: space-between; width: 100%; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
             .mobile-hide { display: none; }
+            #chat-window { width: 100%; height: 100%; top:0; left:0; bottom:0; right:0; border-radius: 0; z-index: 6000; }
+            #chat-btn { bottom: 80px; } 
         }
         
         .view-section { display: none; } .view-section.active { display: block; animation: fadeIn 0.3s; }
@@ -109,13 +132,28 @@
 
 <div id="auth-screen">
     <div class="login-card">
-        <div style="font-size: 2rem; color: var(--accent); margin-bottom: 1rem;"><i class="fas fa-cube"></i></div>
+        <div style="font-size: 2rem; color: var(--accent); margin-bottom: 1rem;"><i class="fas fa-chart-line"></i></div>
         <h2 style="margin-top: 0;">ConstructAI</h2>
         <p style="color:#64748b; margin-bottom:20px;">PE & Field Management ERP</p>
         <input type="email" id="email" class="login-input" placeholder="Email Address">
         <input type="password" id="password" class="login-input" placeholder="Password">
         <button class="btn btn-primary" style="width: 100%; font-size:1rem;" onclick="authLogin()">Secure Login</button>
         <div style="margin-top: 20px; font-size: 0.9rem; color: #64748b; cursor: pointer;" onclick="authRegister()">Initialize Admin Account</div>
+    </div>
+</div>
+
+<div id="chat-btn" onclick="toggleChat()"><i class="fas fa-sparkles"></i></div>
+<div id="chat-window">
+    <div class="chat-header">
+        <div><i class="fas fa-robot"></i> AI Analyst</div>
+        <i class="fas fa-times" style="cursor:pointer;" onclick="toggleChat()"></i>
+    </div>
+    <div class="chat-body" id="chat-log">
+        <div class="msg bot">Hello. I'm connected to your ERP data. Ask me to summarize revenue, risks, or schedule.</div>
+    </div>
+    <div class="chat-footer">
+        <input type="text" id="chat-input" class="chat-input" placeholder="Ask Gemini..." onkeypress="handleChatKey(event)">
+        <button class="btn btn-primary" onclick="sendGeminiMessage()"><i class="fas fa-paper-plane"></i></button>
     </div>
 </div>
 
@@ -129,9 +167,14 @@
             <div class="nav-item" onclick="nav('catalog', this)"><i class="fas fa-book-open"></i> Price Book</div>
             <div class="nav-item" onclick="nav('team', this)"><i class="fas fa-users"></i> Workforce</div>
         </div>
-        <div style="padding: 24px; border-top: 1px solid #334155; display:flex; justify-content:space-between;">
-            <span id="admin-email" style="font-size:0.8rem; color:#94a3b8; overflow:hidden;"></span>
-            <i class="fas fa-sign-out-alt" style="cursor:pointer; color:white;" onclick="authLogout()"></i>
+        
+        <div class="user-panel">
+            <div class="user-name" id="display-name">User Name</div>
+            <div class="user-role" id="display-role">Role</div>
+            <div class="user-actions">
+                <button class="user-btn" onclick="openProfileModal()"><i class="fas fa-user-edit"></i> Profile</button>
+                <button class="user-btn" onclick="authLogout()"><i class="fas fa-sign-out-alt"></i> Exit</button>
+            </div>
         </div>
     </div>
 
@@ -150,7 +193,6 @@
                     <div class="stat-card"><div class="stat-lbl">Net Profit</div><div class="stat-val" style="color:var(--success)" id="kpi-net">$0</div></div>
                     <div class="stat-card"><div class="stat-lbl">Avg. Ticket</div><div class="stat-val" style="color:var(--accent)" id="kpi-ticket">$0</div></div>
                 </div>
-
                 <div class="section-label">Operational Efficiency & Funnel</div>
                 <div class="card-grid">
                     <div class="stat-card"><div class="stat-lbl">Total Leads</div><div class="stat-val" id="op-leads">0</div></div>
@@ -158,14 +200,9 @@
                     <div class="stat-card"><div class="stat-lbl">Completed Jobs</div><div class="stat-val" style="color:var(--success)" id="op-done">0</div></div>
                     <div class="stat-card"><div class="stat-lbl">Win Rate</div><div class="stat-val" id="op-win">0%</div></div>
                 </div>
-
                 <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px; height:350px;">
-                    <div style="background:white; padding:15px; border:1px solid var(--border); border-radius:8px;">
-                        <canvas id="finChart"></canvas>
-                    </div>
-                    <div style="background:white; padding:15px; border:1px solid var(--border); border-radius:8px;">
-                        <canvas id="funnelChart"></canvas>
-                    </div>
+                    <div style="background:white; padding:15px; border:1px solid var(--border); border-radius:8px;"><canvas id="finChart"></canvas></div>
+                    <div style="background:white; padding:15px; border:1px solid var(--border); border-radius:8px;"><canvas id="funnelChart"></canvas></div>
                 </div>
             </div>
 
@@ -248,19 +285,14 @@
         <h2>Manage Expenses</h2>
         <p style="color:var(--text-light); font-size:0.9rem;">Add or remove materials used on this job.</p>
         <input type="hidden" id="m_jid">
-        
         <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:10px; margin-bottom:20px; align-items:end;">
             <div><label>Item</label><select id="m_item"></select></div>
             <div><label>Qty</label><input type="number" id="m_qty" placeholder="1" style="margin-bottom:0;"></div>
             <button class="btn btn-primary" onclick="addMaterialToJob()">Add</button>
         </div>
-
         <div style="max-height:200px; overflow-y:auto; border:1px solid var(--border); border-radius:8px;">
-            <table class="mat-table">
-                <tbody id="mat-list-body"></tbody>
-            </table>
+            <table class="mat-table"><tbody id="mat-list-body"></tbody></table>
         </div>
-        
         <div style="text-align:right; margin-top:15px; font-weight:bold; font-size:1.1rem;">Total: <span id="mat-total-disp">$0</span></div>
         <div style="margin-top:20px;"><button class="btn btn-outline" style="width:100%" onclick="closeModals()">Done</button></div>
     </div>
@@ -269,8 +301,10 @@
 <div id="modalCat" class="modal-overlay"><div class="modal"><h2>Price Book Item</h2><input type="hidden" id="c_id"><label>Name</label><input type="text" id="c_name"><label>Vendor</label><input type="text" id="c_vendor"><label>Cost</label><input type="number" id="c_cost"><div style="display:flex; gap:10px;"><button class="btn btn-primary" style="flex:1" onclick="saveCatalog()">Save</button><button class="btn btn-outline" style="flex:1" onclick="closeModals()">Cancel</button></div></div></div>
 <div id="modalTeam" class="modal-overlay"><div class="modal"><h2>User Profile</h2><input type="hidden" id="t_id"><label>Name</label><input type="text" id="t_name"><label>Role</label><select id="t_role"><option value="Admin">Admin</option><option value="Crew">Crew</option></select><label>Email</label><input type="email" id="t_email"><div style="display:flex; gap:10px;"><button class="btn btn-primary" style="flex:1" onclick="saveTeam()">Save</button><button class="btn btn-outline" style="flex:1" onclick="closeModals()">Cancel</button></div></div></div>
 
+<div id="modalProfile" class="modal-overlay"><div class="modal"><h2>My Profile</h2><label>Full Name</label><input type="text" id="prof_name"><label>Email (Login)</label><input type="text" id="prof_email" disabled style="background:#f1f5f9;"><div style="display:flex; gap:10px;"><button class="btn btn-primary" style="flex:1" onclick="saveProfile()">Update Profile</button><button class="btn btn-outline" style="flex:1" onclick="closeModals()">Close</button></div></div></div>
+
 <script>
-    // --- 1. CONFIGURATION (PASTE KEYS HERE) ---
+    // --- CONFIG ---
     const firebaseConfig = {
         apiKey: "AIzaSyA2HNjITt0civU2SJ4I40XxdnWxryQRDO4",
         authDomain: "construct-erp.firebaseapp.com",
@@ -280,6 +314,7 @@
         messagingSenderId: "737357744238",
         appId: "1:737357744238:web:0942d58665f1709278be7f"
     };
+    const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE"; 
 
     try { firebase.initializeApp(firebaseConfig); } catch(e){console.error(e);}
     const auth = firebase.auth();
@@ -297,22 +332,15 @@
             document.getElementById('auth-screen').style.display='flex';
             document.getElementById('admin-interface').style.display='none';
             document.getElementById('crew-interface').style.display='none';
+            document.getElementById('chat-btn').style.display='none';
         }
     });
 
-    function authLogin() {
-        const e = document.getElementById('email').value.trim(); const p = document.getElementById('password').value.trim();
-        if(!e || !p) return alert("Please enter credentials");
-        auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
-    }
-    function authRegister() {
-        const e = document.getElementById('email').value.trim(); const p = document.getElementById('password').value.trim();
-        if(!e || !p) return alert("Please enter credentials");
-        auth.createUserWithEmailAndPassword(e, p).catch(err => alert(err.message));
-    }
+    function authLogin() { const e = document.getElementById('email').value.trim(); const p = document.getElementById('password').value.trim(); if(!e || !p) return alert("Please enter credentials"); auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message)); }
+    function authRegister() { const e = document.getElementById('email').value.trim(); const p = document.getElementById('password').value.trim(); if(!e || !p) return alert("Please enter credentials"); auth.createUserWithEmailAndPassword(e, p).catch(err => alert(err.message)); }
     function authLogout() { auth.signOut(); location.reload(); }
 
-    // --- APP LOGIC ---
+    // --- INIT APP ---
     function initApp(email) {
         dbRef.ref().on('value', snap => {
             const v = snap.val() || {};
@@ -320,16 +348,21 @@
             db.catalog = v.catalog ? Object.values(v.catalog) : [];
             db.team = v.team ? Object.values(v.team) : [];
             
+            // Find current user profile or create temp one if admin
             const profile = db.team.find(t => t.email && t.email.toLowerCase() === email.toLowerCase());
-            
-            if (!profile || profile.role === 'Admin') {
+            currentUser = profile || { name: "Admin", role: "Admin", email: email, id: "ADMIN" };
+
+            // Update Profile Display
+            if(document.getElementById('display-name')) document.getElementById('display-name').innerText = currentUser.name;
+            if(document.getElementById('display-role')) document.getElementById('display-role').innerText = currentUser.role;
+
+            if (currentUser.role === 'Admin') {
                 document.getElementById('admin-interface').style.display = 'flex';
-                document.getElementById('admin-email').innerText = email;
+                document.getElementById('chat-btn').style.display='flex';
                 renderAdmin();
             } else {
-                currentUser = profile;
                 document.getElementById('crew-interface').style.display = 'flex';
-                document.getElementById('crew-name').innerText = profile.name.split(' ')[0];
+                document.getElementById('crew-name').innerText = currentUser.name.split(' ')[0];
                 renderCrew();
             }
         });
@@ -337,97 +370,7 @@
 
     function renderAdmin() { renderJobs(); renderCatalog(); renderTeam(); renderDashboard(); initCalendar(); }
 
-    // --- RENDERERS ---
-    function renderJobs(f="") {
-        const l = document.getElementById('jobList'); l.innerHTML="";
-        db.jobs.filter(j=>j.name.toLowerCase().includes(f.toLowerCase())).forEach(j => {
-            const fName = db.team.find(t => t.id == j.foremanId)?.name || "Unassigned";
-            const cost = j.materials ? j.materials.reduce((s,m)=>s+m.total,0) : 0;
-            const profit = (j.value||0) - cost;
-            
-            l.innerHTML += `
-                <div class="list-card">
-                    <div style="flex:1">
-                        <div style="margin-bottom:5px;"><span class="badge badge-${j.status}">${j.status}</span></div>
-                        <div style="font-weight:700; color:var(--primary);">${j.name}</div>
-                        <div style="font-size:0.8rem; color:#64748b; margin-top:4px;">Assigned: ${fName}</div>
-                    </div>
-                    <div class="mobile-hide" style="text-align:right; margin:0 20px;">
-                        <div style="font-weight:700;">$${j.value.toLocaleString()}</div>
-                        <div style="font-size:0.8rem; color:var(--danger)">Cost: $${cost.toLocaleString()}</div>
-                        <div style="font-size:0.8rem; color:var(--success)">Net: $${profit.toLocaleString()}</div>
-                    </div>
-                    <div class="list-actions" style="display:flex; gap:8px;">
-                        <button class="btn btn-outline btn-sm" onclick="manageMaterials(${j.id})"><i class="fas fa-box"></i></button>
-                        <button class="btn btn-outline btn-sm" onclick="openJobModal(${j.id})"><i class="fas fa-pen"></i></button>
-                        <button class="btn btn-danger btn-sm" onclick="delJob(${j.id})"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>`;
-        });
-    }
-
-    function renderCrew() {
-        const l = document.getElementById('crewJobList'); l.innerHTML="";
-        const myJobs = db.jobs.filter(j => j.foremanId == currentUser.id && j.status !== 'Lead' && j.status !== 'Canceled');
-        if(myJobs.length === 0) { l.innerHTML=`<div style="text-align:center; padding:40px; color:#94a3b8">No jobs assigned.</div>`; return;}
-        
-        myJobs.forEach(j => {
-            const addr = j.address ? `<a href="https://maps.google.com/?q=${encodeURIComponent(j.address)}" target="_blank" style="color:var(--accent); text-decoration:none;">${j.address}</a>` : 'No Address';
-            const startStr = j.start ? new Date(j.start).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : "TBD";
-            const endStr = j.end ? new Date(j.end).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : "TBD";
-
-            l.innerHTML += `
-            <div class="job-card-mobile">
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span class="badge badge-${j.status}">${j.status}</span> <b>${new Date(j.start).toLocaleDateString()}</b></div>
-                <h3 style="margin:0;">${j.name}</h3>
-                <p style="color:#64748b; font-size:0.9rem; margin-top:5px;">${addr}</p>
-                <div class="mobile-meta"><div><strong>Start:</strong><br>${startStr}</div><div><strong>Est. Completion:</strong><br>${endStr}</div></div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:15px;">
-                    ${j.status==='Scheduled' ? `<button class="btn btn-primary" onclick="setStatus(${j.id},'InProgress')">Start</button>` : `<button class="btn btn-outline" disabled>Started</button>`}
-                    ${j.status==='InProgress' ? `<button class="btn btn-success" onclick="setStatus(${j.id},'Done')">Complete</button>` : `<button class="btn btn-outline" disabled>Done</button>`}
-                </div>
-            </div>`;
-        });
-    }
-
-    function renderDashboard() {
-        const active = db.jobs.filter(j=>j.status!=='Lead' && j.status!=='Canceled');
-        const completed = db.jobs.filter(j=>j.status==='Done');
-        const leads = db.jobs.filter(j=>j.status==='Lead');
-        const rev = active.reduce((a,b)=>a+(b.value||0),0); 
-        const cost = active.reduce((a,b)=>a+(b.materials?b.materials.reduce((x,y)=>x+y.total,0):0),0);
-        const profit = rev - cost;
-        const avgTicket = active.length > 0 ? Math.round(rev / active.length) : 0;
-
-        document.getElementById('kpi-rev').innerText = "$" + rev.toLocaleString();
-        document.getElementById('kpi-cogs').innerText = "$" + cost.toLocaleString();
-        document.getElementById('kpi-net').innerText = "$" + profit.toLocaleString();
-        document.getElementById('kpi-ticket').innerText = "$" + avgTicket.toLocaleString();
-        document.getElementById('kpi-count').innerText = active.length + " Active Jobs";
-        document.getElementById('op-leads').innerText = leads.length;
-        document.getElementById('op-wip').innerText = db.jobs.filter(j=>j.status==='InProgress').length;
-        document.getElementById('op-done').innerText = completed.length;
-        const totalOpp = db.jobs.filter(j=>j.status!=='Canceled').length;
-        const wins = active.length;
-        const rate = totalOpp > 0 ? Math.round((wins/totalOpp)*100) : 0;
-        document.getElementById('op-win').innerText = rate + "%";
-
-        if(finChart) finChart.destroy();
-        finChart = new Chart(document.getElementById('finChart'), {
-            type: 'bar',
-            data: { labels: ['Financials'], datasets: [{label:'Rev',data:[rev],backgroundColor:'#0f172a'}, {label:'Profit',data:[profit],backgroundColor:'#10b981'}] },
-            options: {maintainAspectRatio:false, plugins:{title:{display:true,text:'Revenue vs Profit'}}}
-        });
-
-        if(funnelChart) funnelChart.destroy();
-        funnelChart = new Chart(document.getElementById('funnelChart'), {
-            type: 'doughnut',
-            data: { labels: ['Leads','WIP','Done','Cancel'], datasets: [{data:[leads.length, document.getElementById('op-wip').innerText, completed.length, db.jobs.filter(j=>j.status==='Canceled').length], backgroundColor:['#e0f2fe','#f59e0b','#10b981','#ef4444']}] },
-            options: {maintainAspectRatio:false, plugins:{title:{display:true,text:'Job Status'}}}
-        });
-    }
-
-    // --- ACTIONS ---
+    // --- CRUD LOGIC ---
     function saveJob() {
         const id = document.getElementById('j_id').value;
         const obj = {
@@ -441,78 +384,85 @@
             address: document.getElementById('j_address').value,
             materials: id !== "NEW" ? (db.jobs.find(x => x.id == id)?.materials || []) : []
         };
-        if(id === "NEW") db.jobs.push(obj);
-        else { const idx = db.jobs.findIndex(x => x.id == id); if(idx !== -1) db.jobs[idx] = obj; }
+        if(id === "NEW") db.jobs.push(obj); else { const idx = db.jobs.findIndex(x => x.id == id); if(idx !== -1) db.jobs[idx] = obj; }
         saveData(); closeModals(); notify("Job Saved");
     }
 
+    function saveCatalog(){
+        const id=document.getElementById('c_id').value; 
+        const obj={id:id=="NEW"?Date.now():Number(id),name:document.getElementById('c_name').value,vendor:document.getElementById('c_vendor').value,cost:Number(document.getElementById('c_cost').value)}; 
+        if(id=="NEW") db.catalog.push(obj); else { const idx=db.catalog.findIndex(x=>x.id==id); if(idx!==-1) db.catalog[idx]=obj; } 
+        saveData(); closeModals(); notify("Item Saved");
+    }
+
+    function saveTeam() {
+        const id=document.getElementById('t_id').value;
+        const obj={id: id==="NEW"?Date.now():Number(id), name:document.getElementById('t_name').value, role:document.getElementById('t_role').value, email:document.getElementById('t_email').value.trim()};
+        if(id==="NEW") db.team.push(obj); else { const idx=db.team.findIndex(x=>x.id==id); if(idx!==-1) db.team[idx]=obj; }
+        saveData(); closeModals(); notify("User Saved");
+    }
+
+    function saveProfile() {
+        if(currentUser.id === "ADMIN") {
+            // If first time admin (not in team list), add them
+            const newId = Date.now();
+            db.team.push({ id: newId, name: document.getElementById('prof_name').value, role: 'Admin', email: currentUser.email });
+        } else {
+            // Update existing
+            const idx = db.team.findIndex(t => t.id === currentUser.id);
+            if(idx !== -1) db.team[idx].name = document.getElementById('prof_name').value;
+        }
+        saveData(); closeModals(); notify("Profile Updated");
+    }
+
+    function delJob(id) { if(confirm("Delete?")) { db.jobs=db.jobs.filter(x=>x.id!=id); saveData(); notify("Deleted"); } }
+    function delCatalog(id){if(confirm("Delete?")){db.catalog=db.catalog.filter(x=>x.id!=id);saveData(); notify("Deleted");}}
+    function openTeamModal(id=null){document.getElementById('modalTeam').style.display='flex'; if(id){const t=db.team.find(x=>x.id==id);document.getElementById('t_id').value=t.id;document.getElementById('t_name').value=t.name;document.getElementById('t_role').value=t.role;document.getElementById('t_email').value=t.email;}else{document.getElementById('t_id').value="NEW"; document.getElementById('t_name').value=""; document.getElementById('t_email').value="";}}
+    
+    // --- MODAL OPENERS ---
+    function openJobModal(id=null) { document.getElementById('modalJob').style.display='flex'; const s=document.getElementById('j_foreman'); s.innerHTML='<option value="">Unassigned</option>'; db.team.forEach(t=>s.innerHTML+=`<option value="${t.id}">${t.name}</option>`); if(id){const j=db.jobs.find(x=>x.id==id); document.getElementById('j_id').value=j.id; document.getElementById('j_name').value=j.name; document.getElementById('j_val').value=j.value; document.getElementById('j_status').value=j.status; document.getElementById('j_start').value=j.start; document.getElementById('j_end').value=j.end; document.getElementById('j_address').value=j.address||""; document.getElementById('j_foreman').value=j.foremanId||"";}else{document.getElementById('j_id').value="NEW"; document.getElementById('j_name').value="";} }
+    function openCatalogModal(id=null){document.getElementById('modalCat').style.display='flex'; if(id){const c=db.catalog.find(x=>x.id==id);document.getElementById('c_id').value=c.id;document.getElementById('c_name').value=c.name;document.getElementById('c_vendor').value=c.vendor;document.getElementById('c_cost').value=c.cost;}else{document.getElementById('c_id').value="NEW"; document.getElementById('c_name').value="";}}
+    function openProfileModal() { document.getElementById('modalProfile').style.display='flex'; document.getElementById('prof_name').value = currentUser.name; document.getElementById('prof_email').value = currentUser.email; }
+
+    // --- MATERIAL LOGIC ---
+    function manageMaterials(jid) { document.getElementById('modalMat').style.display='flex'; document.getElementById('m_jid').value=jid; const s=document.getElementById('m_item'); s.innerHTML=""; db.catalog.forEach(c=>s.innerHTML+=`<option value="${c.id}">${c.name} ($${c.cost})</option>`); renderMaterialList(jid); }
+    function addMaterialToJob() { const jid=document.getElementById('m_jid').value; const mid=document.getElementById('m_item').value; const qty=Number(document.getElementById('m_qty').value); const j=db.jobs.find(x=>x.id==jid); const item=db.catalog.find(c=>c.id==mid); if(!j.materials) j.materials=[]; j.materials.push({name:item.name, cost:item.cost, qty, total:item.cost*qty}); saveData(); renderMaterialList(jid); notify("Added"); }
+    function removeMaterial(jid, index) { const j = db.jobs.find(x => x.id == jid); j.materials.splice(index, 1); saveData(); renderMaterialList(jid); }
+    function renderMaterialList(jid) { const j = db.jobs.find(x => x.id == jid); const tbody = document.getElementById('mat-list-body'); tbody.innerHTML = ""; let total = 0; if(j.materials) j.materials.forEach((m, index) => { total += m.total; tbody.innerHTML += `<tr><td>${m.name}</td><td>${m.qty}</td><td>$${m.total}</td><td style="text-align:right;"><i class="fas fa-trash" style="color:var(--danger); cursor:pointer;" onclick="removeMaterial(${jid}, ${index})"></i></td></tr>`; }); document.getElementById('mat-total-disp').innerText = "$" + total.toLocaleString(); }
+
+    // --- GEMINI CHAT (FAIL SAFE) ---
+    function toggleChat() { const win = document.getElementById('chat-window'); win.style.display = win.style.display === 'flex' ? 'none' : 'flex'; }
+    function handleChatKey(e) { if(e.key === 'Enter') sendGeminiMessage(); }
+    async function sendGeminiMessage() {
+        const input = document.getElementById('chat-input'); const msg = input.value.trim(); if(!msg) return;
+        addMsg(msg, 'user'); input.value = ''; const loadingId = addMsg('Thinking...', 'bot loading');
+        const activeJobs = db.jobs.filter(j=>j.status!=='Lead' && j.status!=='Canceled'); const revenue = activeJobs.reduce((a,b)=>a+(b.value||0),0);
+        const context = `System: Revenue $${revenue}. Active Jobs: ${activeJobs.length}. Crew ${db.team.length}. User: ${msg}`;
+        const models = ["gemini-1.5-flash", "gemini-pro", "gemini-1.0-pro"]; let success = false;
+        for (const model of models) {
+            if (success) break;
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+                const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: context }] }] }) });
+                const data = await response.json();
+                if (data.candidates && data.candidates[0].content) { document.getElementById(loadingId).remove(); addMsg(marked.parse(data.candidates[0].content.parts[0].text), 'bot'); success = true; }
+            } catch (err) {}
+        }
+        if (!success) document.getElementById(loadingId).innerHTML = `<span style="color:red">AI Error.</span>`;
+    }
+    function addMsg(text, type) { const log = document.getElementById('chat-log'); const div = document.createElement('div'); div.id = 'msg-' + Date.now(); div.className = `msg ${type}`; div.innerHTML = text; log.appendChild(div); log.scrollTop = log.scrollHeight; return div.id; }
+
+    // --- RENDERERS ---
+    function renderJobs(f="") { const l = document.getElementById('jobList'); l.innerHTML=""; db.jobs.filter(j=>j.name.toLowerCase().includes(f.toLowerCase())).forEach(j => { const fName = db.team.find(t => t.id == j.foremanId)?.name || "Unassigned"; const cost = j.materials ? j.materials.reduce((s,m)=>s+m.total,0) : 0; const profit = (j.value||0) - cost; l.innerHTML += `<div class="list-card"><div style="flex:1"><div style="margin-bottom:5px;"><span class="badge badge-${j.status}">${j.status}</span></div><div style="font-weight:700; color:var(--primary);">${j.name}</div><div style="font-size:0.8rem; color:#64748b; margin-top:4px;">Assigned: ${fName}</div></div><div class="mobile-hide" style="text-align:right; margin:0 20px;"><div style="font-weight:700;">$${j.value.toLocaleString()}</div><div style="font-size:0.8rem; color:var(--danger)">Cost: $${cost.toLocaleString()}</div><div style="font-size:0.8rem; color:var(--success)">Net: $${profit.toLocaleString()}</div></div><div class="list-actions" style="display:flex; gap:8px;"><button class="btn btn-outline btn-sm" onclick="manageMaterials(${j.id})"><i class="fas fa-box"></i></button><button class="btn btn-outline btn-sm" onclick="openJobModal(${j.id})"><i class="fas fa-pen"></i></button><button class="btn btn-danger btn-sm" onclick="delJob(${j.id})"><i class="fas fa-trash"></i></button></div></div>`; }); }
+    function renderCatalog() { const l=document.getElementById('catalogList'); l.innerHTML=""; db.catalog.forEach(c=>l.innerHTML+=`<div class="list-card"><div><strong>${c.name}</strong><br>${c.vendor}</div><div>$${c.cost}</div><div style="display:flex; gap:5px;"><button class="btn btn-outline btn-sm" onclick="openCatalogModal(${c.id})">Edit</button><button class="btn btn-danger btn-sm" onclick="delCatalog(${c.id})"><i class="fas fa-trash"></i></button></div></div>`); }
+    function renderTeam() { const l=document.getElementById('teamList'); l.innerHTML=""; db.team.forEach(t=>l.innerHTML+=`<div class="list-card"><div><strong>${t.name}</strong><br>${t.role}</div><button class="btn btn-outline btn-sm" onclick="openTeamModal(${t.id})">Edit</button></div>`); }
+    function renderCrew() { const l = document.getElementById('crewJobList'); l.innerHTML=""; const myJobs = db.jobs.filter(j => j.foremanId == currentUser.id && j.status !== 'Lead' && j.status !== 'Canceled'); if(myJobs.length === 0) { l.innerHTML=`<div style="text-align:center; padding:40px; color:#94a3b8">No jobs assigned.</div>`; return;} myJobs.forEach(j => { const addr = j.address ? `<a href="https://maps.google.com/?q=${encodeURIComponent(j.address)}" target="_blank" style="color:var(--accent); text-decoration:none;">${j.address}</a>` : 'No Address'; const startStr = j.start ? new Date(j.start).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : "TBD"; const endStr = j.end ? new Date(j.end).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : "TBD"; l.innerHTML += `<div class="job-card-mobile"><div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span class="badge badge-${j.status}">${j.status}</span></div><h3 style="margin:0;">${j.name}</h3><p style="color:#64748b; font-size:0.9rem; margin-top:5px;">${addr}</p><div class="mobile-meta"><div><strong>Start:</strong><br>${startStr}</div><div><strong>Est. Completion:</strong><br>${endStr}</div></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:15px;">${j.status==='Scheduled' ? `<button class="btn btn-primary" onclick="setStatus(${j.id},'InProgress')">Start</button>` : `<button class="btn btn-outline" disabled>Started</button>`}${j.status==='InProgress' ? `<button class="btn btn-success" onclick="setStatus(${j.id},'Done')">Complete</button>` : `<button class="btn btn-outline" disabled>Done</button>`}</div></div>`; }); }
     function setStatus(jid, s) { const j=db.jobs.find(x=>x.id==jid); if(j){j.status=s; saveData(); notify("Status Updated");} }
     function delJob(id) { if(confirm("Delete?")) { db.jobs=db.jobs.filter(x=>x.id!=id); saveData(); notify("Deleted"); } }
-    function saveTeam() { const id=document.getElementById('t_id').value; const obj={id: id==="NEW"?Date.now():Number(id), name:document.getElementById('t_name').value, role:document.getElementById('t_role').value, email:document.getElementById('t_email').value.trim()}; if(id==="NEW") db.team.push(obj); else db.team[db.team.findIndex(x=>x.id==id)]=obj; saveData(); closeModals(); notify("User Saved"); }
-
-    function manageMaterials(jid) {
-        document.getElementById('modalMat').style.display='flex'; 
-        document.getElementById('m_jid').value=jid; 
-        const s=document.getElementById('m_item'); s.innerHTML=""; 
-        db.catalog.forEach(c=>s.innerHTML+=`<option value="${c.id}">${c.name} ($${c.cost})</option>`);
-        renderMaterialList(jid);
-    }
-
-    function addMaterialToJob() { 
-        const jid=document.getElementById('m_jid').value; 
-        const mid=document.getElementById('m_item').value; 
-        const qty=Number(document.getElementById('m_qty').value); 
-        const j=db.jobs.find(x=>x.id==jid); 
-        const item=db.catalog.find(c=>c.id==mid); 
-        if(!j.materials) j.materials=[]; 
-        j.materials.push({name:item.name, cost:item.cost, qty, total:item.cost*qty}); 
-        saveData(); renderMaterialList(jid); notify("Material Added"); 
-    }
-
-    function removeMaterial(jid, index) {
-        const j = db.jobs.find(x => x.id == jid);
-        j.materials.splice(index, 1); 
-        saveData(); renderMaterialList(jid); 
-    }
-
-    function renderMaterialList(jid) {
-        const j = db.jobs.find(x => x.id == jid);
-        const tbody = document.getElementById('mat-list-body');
-        tbody.innerHTML = "";
-        let total = 0;
-        if(j.materials && j.materials.length > 0) {
-            j.materials.forEach((m, index) => {
-                total += m.total;
-                tbody.innerHTML += `<tr><td>${m.name}</td><td>${m.qty}</td><td>$${m.total}</td><td style="text-align:right;"><i class="fas fa-trash" style="color:var(--danger); cursor:pointer;" onclick="removeMaterial(${jid}, ${index})"></i></td></tr>`;
-            });
-        } else {
-            tbody.innerHTML = "<tr><td colspan='4' style='color:#999; text-align:center;'>No materials added.</td></tr>";
-        }
-        document.getElementById('mat-total-disp').innerText = "$" + total.toLocaleString();
-    }
-
-    function initCalendar(){
-        if(calendar)return; 
-        calendar=new FullCalendar.Calendar(document.getElementById('calendar'),{
-            initialView: window.innerWidth<768?'listWeek':'dayGridMonth', 
-            headerToolbar:{left:'prev,next',center:'title',right:window.innerWidth<768?'':'dayGridMonth,timeGridWeek'}, 
-            eventClick: function(info) { openJobModal(Number(info.event.id)); },
-            events: db.jobs.filter(j=>j.start).map(j=>({
-                id: j.id, title: j.name, start: j.start, end: j.end,
-                backgroundColor: j.status==='Scheduled'?'#f59e0b':(j.status==='InProgress'?'#7e22ce':(j.status==='Done'?'#10b981':'#64748b')),
-                borderColor: 'transparent'
-            }))
-        }); 
-        calendar.render();
-    }
-
-    function openJobModal(id=null) { document.getElementById('modalJob').style.display='flex'; const s=document.getElementById('j_foreman'); s.innerHTML='<option value="">Unassigned</option>'; db.team.forEach(t=>s.innerHTML+=`<option value="${t.id}">${t.name}</option>`); if(id){const j=db.jobs.find(x=>x.id==id); document.getElementById('j_id').value=j.id; document.getElementById('j_name').value=j.name; document.getElementById('j_val').value=j.value; document.getElementById('j_status').value=j.status; document.getElementById('j_start').value=j.start; document.getElementById('j_end').value=j.end; document.getElementById('j_address').value=j.address||""; document.getElementById('j_foreman').value=j.foremanId||"";}else{document.getElementById('j_id').value="NEW"; document.getElementById('j_name').value="";} }
-    function openCatalogModal(id=null){document.getElementById('modalCat').style.display='flex'; if(id){const c=db.catalog.find(x=>x.id==id);document.getElementById('c_id').value=c.id;document.getElementById('c_name').value=c.name;document.getElementById('c_vendor').value=c.vendor;document.getElementById('c_cost').value=c.cost;}else{document.getElementById('c_id').value="NEW";}}
-    function saveCatalog(){const id=document.getElementById('c_id').value; const obj={id:id=="NEW"?Date.now():Number(id),name:document.getElementById('c_name').value,vendor:document.getElementById('c_vendor').value,cost:Number(document.getElementById('c_cost').value)}; if(id=="NEW")db.catalog.push(obj); else db.catalog[db.catalog.findIndex(x=>x.id==id)]=obj; saveData(); closeModals();}
-    function renderCatalog(){const l=document.getElementById('catalogList');l.innerHTML="";db.catalog.forEach(c=>l.innerHTML+=`<div class="list-card"><div><strong>${c.name}</strong><br>${c.vendor}</div><div>$${c.cost}</div><button class="btn btn-outline btn-sm" onclick="openCatalogModal(${c.id})">Edit</button></div>`);}
-    function delCatalog(id){if(confirm("Delete?")){db.catalog=db.catalog.filter(x=>x.id!=id);saveData();}}
-    function openTeamModal(id=null){document.getElementById('modalTeam').style.display='flex'; if(id){const t=db.team.find(x=>x.id==id);document.getElementById('t_id').value=t.id;document.getElementById('t_name').value=t.name;document.getElementById('t_role').value=t.role;document.getElementById('t_email').value=t.email;}else{document.getElementById('t_id').value="NEW";}}
-    function renderTeam(){const l=document.getElementById('teamList');l.innerHTML="";db.team.forEach(t=>l.innerHTML+=`<div class="list-card"><div><strong>${t.name}</strong><br>${t.role}</div><button class="btn btn-outline btn-sm" onclick="openTeamModal(${t.id})">Edit</button></div>`);}
+    
+    function renderDashboard() { const active=db.jobs.filter(j=>j.status!=='Lead'&&j.status!=='Canceled'); const rev=active.reduce((a,b)=>a+(b.value||0),0); const cost=active.reduce((a,b)=>a+(b.materials?b.materials.reduce((x,y)=>x+y.total,0):0),0); const profit=rev-cost; const avgTicket=active.length>0?Math.round(rev/active.length):0; document.getElementById('kpi-rev').innerText="$"+rev.toLocaleString(); document.getElementById('kpi-cogs').innerText="$"+cost.toLocaleString(); document.getElementById('kpi-net').innerText="$"+profit.toLocaleString(); document.getElementById('kpi-ticket').innerText="$"+avgTicket.toLocaleString(); document.getElementById('kpi-count').innerText=active.length+" Active Jobs"; document.getElementById('op-leads').innerText=db.jobs.filter(j=>j.status==='Lead').length; document.getElementById('op-wip').innerText=db.jobs.filter(j=>j.status==='InProgress').length; document.getElementById('op-done').innerText=db.jobs.filter(j=>j.status==='Done').length; const totalOpp=db.jobs.filter(j=>j.status!=='Canceled').length; const wins=active.length; document.getElementById('op-win').innerText=(totalOpp>0?Math.round((wins/totalOpp)*100):0)+"%"; if(finChart)finChart.destroy(); finChart=new Chart(document.getElementById('finChart'),{type:'bar',data:{labels:['Financials'],datasets:[{label:'Rev',data:[rev],backgroundColor:'#0f172a'},{label:'Profit',data:[profit],backgroundColor:'#10b981'}]},options:{maintainAspectRatio:false,plugins:{title:{display:true,text:'Revenue vs Profit'}}}}); if(funnelChart)funnelChart.destroy(); funnelChart=new Chart(document.getElementById('funnelChart'),{type:'doughnut',data:{labels:['Leads','WIP','Done','Cancel'],datasets:[{data:[db.jobs.filter(j=>j.status==='Lead').length,document.getElementById('op-wip').innerText,document.getElementById('op-done').innerText,db.jobs.filter(j=>j.status==='Canceled').length],backgroundColor:['#e0f2fe','#f59e0b','#10b981','#ef4444']}]},options:{maintainAspectRatio:false,plugins:{title:{display:true,text:'Job Status'}}}}); }
+    function initCalendar(){if(calendar)return; calendar=new FullCalendar.Calendar(document.getElementById('calendar'),{initialView: window.innerWidth<768?'listWeek':'dayGridMonth', headerToolbar:{left:'prev,next',center:'title',right:window.innerWidth<768?'':'dayGridMonth,timeGridWeek'}, eventClick: function(info) { openJobModal(Number(info.event.id)); }, events: db.jobs.filter(j=>j.start).map(j=>({id: j.id, title: j.name, start: j.start, end: j.end, backgroundColor: j.status==='Scheduled'?'#f59e0b':(j.status==='InProgress'?'#7e22ce':(j.status==='Done'?'#10b981':'#64748b')), borderColor: 'transparent'}))}); calendar.render();}
+    
     function nav(v,e){document.querySelectorAll('.view-section').forEach(x=>x.classList.remove('active')); document.getElementById('view-'+v).classList.add('active'); document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); e.classList.add('active'); if(v=='calendar')setTimeout(()=>calendar.render(),200);}
     function handleCSV(i){const f=i.files[0]; if(!f)return; const r=new FileReader(); r.onload=e=>{e.target.result.split('\n').slice(1).forEach((row,idx)=>{if(row.trim()){const c=row.split(','); db.jobs.push({id:Date.now()+idx, name:c[1]||"Lead", value:0, status:'Lead'});}}); saveData(); i.value="";}; r.readAsText(f);}
     function notify(m){const d=document.createElement('div');d.className='toast';d.innerText=m;document.getElementById('toast-container').appendChild(d);setTimeout(()=>d.remove(),3000);}
