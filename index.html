@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ConstructAI - Production</title>
+    <title>ConstructAI - Bug Fix Release</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -31,21 +31,12 @@
         .login-input { width: 100%; padding: 16px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 16px; }
         
         /* --- LAYOUT --- */
-        /* Desktop Sidebar */
+        #app-screen { display: none; width: 100%; height: 100%; }
         .sidebar { width: 260px; background: var(--sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; }
         .brand { padding: 24px; font-size: 1.25rem; font-weight: 800; border-bottom: 1px solid #1e293b; display: flex; align-items: center; gap: 12px; }
         .nav-menu { flex: 1; padding-top: 20px; }
         .nav-item { padding: 14px 24px; cursor: pointer; color: #94a3b8; display: flex; gap: 12px; align-items: center; font-weight: 500; transition: 0.2s; border-left: 4px solid transparent; }
         .nav-item:hover, .nav-item.active { background: #1e293b; color: white; border-left-color: var(--primary); }
-        
-        /* Mobile Bottom Nav */
-        .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; width: 100%; height: var(--bottom-nav-height); background: var(--sidebar); z-index: 100; justify-content: space-around; align-items: center; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); padding-bottom: env(safe-area-inset-bottom); }
-        .b-nav-item { color: #94a3b8; display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; gap: 4px; flex: 1; padding: 10px 0; }
-        .b-nav-item i { font-size: 1.2rem; }
-        .b-nav-item.active { color: var(--primary); }
-
-        /* Main Content */
-        #app-screen { display: none; width: 100%; height: 100%; }
         .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; }
         .page-title { font-size: 1.5rem; font-weight: 700; color: var(--sidebar); }
@@ -84,7 +75,12 @@
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         input, select { width: 100%; padding: 14px; margin: 8px 0 20px 0; border: 1px solid #cbd5e1; border-radius: 12px; font-family: inherit; font-size: 16px; appearance: none; background-color: white; }
 
-        /* --- MOBILE MEDIA QUERIES --- */
+        /* --- MOBILE --- */
+        .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; width: 100%; height: var(--bottom-nav-height); background: var(--sidebar); z-index: 100; justify-content: space-around; align-items: center; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); padding-bottom: env(safe-area-inset-bottom); }
+        .b-nav-item { color: #94a3b8; display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; gap: 4px; flex: 1; padding: 10px 0; }
+        .b-nav-item i { font-size: 1.2rem; }
+        .b-nav-item.active { color: var(--primary); }
+
         @media (max-width: 768px) {
             .sidebar { display: none; }
             .bottom-nav { display: flex; }
@@ -99,6 +95,9 @@
         
         .view-section { display: none; } .view-section.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 3000; }
+        .toast { background: var(--sidebar); color: white; padding: 12px 20px; border-radius: 8px; margin-top: 10px; animation: fadeIn 0.3s; }
     </style>
 </head>
 <body>
@@ -134,7 +133,7 @@
     <div class="main">
         <div class="header">
             <div class="page-title" id="page-header">Dashboard</div>
-            <div style="color: var(--success); font-size: 0.85rem; font-weight: 600;"><i class="fas fa-wifi"></i></div>
+            <div style="color: var(--success); font-size: 0.85rem; font-weight: 600;"><i class="fas fa-wifi"></i> Online</div>
         </div>
 
         <div class="content">
@@ -196,6 +195,8 @@
     <h3 style="margin-bottom:15px;">My Assignments</h3>
     <div id="crewJobList"></div>
 </div>
+
+<div id="toast-container"></div>
 
 <div id="modalJob" class="modal-overlay">
     <div class="modal">
@@ -325,7 +326,8 @@
     function renderJobs(f="") {
         const l = document.getElementById('jobList'); l.innerHTML="";
         db.jobs.filter(j=>j.name.toLowerCase().includes(f.toLowerCase())).forEach(j => {
-            const fName = db.team.find(t=>t.id==j.foremanId)?.name || "Unassigned";
+            // FIX: Compare foremanId loosely or as Strings
+            const fName = db.team.find(t=> t.id == j.foremanId)?.name || "Unassigned";
             const matCost = j.materials ? j.materials.reduce((s, m) => s + m.total, 0) : 0;
             const profit = (j.value || 0) - matCost;
             l.innerHTML += `
@@ -342,6 +344,7 @@
                     <div class="list-card-actions" style="display:flex; gap:8px;">
                         <button class="btn btn-outline btn-sm" onclick="openMatModal(${j.id})"><i class="fas fa-box"></i></button>
                         <button class="btn btn-outline btn-sm" onclick="openJobModal(${j.id})"><i class="fas fa-pen"></i></button>
+                        <button class="btn btn-danger btn-sm" onclick="delJob(${j.id})"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>`;
         });
@@ -349,7 +352,8 @@
 
     function renderCrew() {
         const l = document.getElementById('crewJobList'); l.innerHTML="";
-        const myJobs = db.jobs.filter(j => j.foremanId === currentUser.id && j.status !== 'Lead');
+        // FIX: Loose equality check for Crew ID match
+        const myJobs = db.jobs.filter(j => j.foremanId == currentUser.id && j.status !== 'Lead');
         if(myJobs.length === 0) { l.innerHTML = `<div style="text-align:center;padding:30px;color:#94a3b8">No jobs assigned.</div>`; return; }
         
         myJobs.forEach(j => {
@@ -369,19 +373,27 @@
     function setStatus(jid, s) { const j=db.jobs.find(x=>x.id==jid); if(j){j.status=s; saveData();} }
 
     function saveJob() {
-        const id=document.getElementById('j_id').value;
+        const id = document.getElementById('j_id').value;
+        // FIX: Explicit type handling
         const obj = { 
-            id: id=="NEW"?Date.now():Number(id), 
+            id: id==="NEW" ? Date.now() : Number(id), 
             name: document.getElementById('j_name').value, 
             value: Number(document.getElementById('j_val').value), 
             status: document.getElementById('j_status').value, 
             start: document.getElementById('j_start').value, 
             end: document.getElementById('j_end').value, 
-            foremanId: document.getElementById('j_foreman').value,
+            foremanId: document.getElementById('j_foreman').value, // This is a string from select
             address: document.getElementById('j_address').value,
-            materials: (id!="NEW"?db.jobs.find(x=>x.id==id).materials:[])
+            materials: (id!=="NEW" ? (db.jobs.find(x=>x.id==id)?.materials || []) : [])
         };
-        if(id=="NEW") db.jobs.push(obj); else db.jobs[db.jobs.findIndex(x=>x.id==id)] = obj;
+        
+        if(id==="NEW") {
+            db.jobs.push(obj); 
+        } else {
+            // FIX: Find index with loose equality
+            const idx = db.jobs.findIndex(x => x.id == id);
+            if(idx !== -1) db.jobs[idx] = obj;
+        }
         saveData(); closeModals();
     }
 
@@ -396,12 +408,12 @@
     function saveTeam() {
         const id=document.getElementById('t_id').value; 
         const obj={
-            id:id=="NEW"?Date.now():Number(id), 
+            id:id==="NEW"?Date.now():Number(id), 
             name:document.getElementById('t_name').value, 
             role:document.getElementById('t_role').value, 
             email:document.getElementById('t_email').value.trim()
         };
-        if(id=="NEW") db.team.push(obj); else db.team[db.team.findIndex(x=>x.id==id)]=obj;
+        if(id==="NEW") db.team.push(obj); else db.team[db.team.findIndex(x=>x.id==id)]=obj;
         saveData(); closeModals();
     }
 
@@ -417,15 +429,22 @@
     function openMatModal(jid) { document.getElementById('modalMat').style.display='flex'; document.getElementById('m_jid').value=jid; const s=document.getElementById('m_item'); s.innerHTML=""; db.catalog.forEach(c=>s.innerHTML+=`<option value="${c.id}">${c.name} ($${c.cost})</option>`); }
     function openTeamModal(id=null) { document.getElementById('modalTeam').style.display='flex'; if(id){const t=db.team.find(x=>x.id==id); document.getElementById('t_id').value=t.id; document.getElementById('t_name').value=t.name; document.getElementById('t_role').value=t.role; document.getElementById('t_email').value=t.email;}else{document.getElementById('t_id').value="NEW";} }
     
-    // Other renderers kept minimal for brevity but fully functional
-    function renderCatalog() { const l=document.getElementById('catalogList'); l.innerHTML=""; db.catalog.forEach(c => l.innerHTML += `<div class="list-card"><div><strong>${c.name}</strong><br>${c.vendor}</div><div style="font-weight:bold">$${c.cost}</div><button class="btn btn-outline btn-sm" onclick="openCatalogModal(${c.id})">Edit</button></div>`); }
+    // Other renderers
+    function renderCatalog() { const l=document.getElementById('catalogList'); l.innerHTML=""; db.catalog.forEach(c => l.innerHTML += `<div class="list-card"><div><strong>${c.name}</strong><br>${c.vendor}</div><div style="font-weight:bold">$${c.cost}</div><div><button class="btn btn-outline btn-sm" onclick="openCatalogModal(${c.id})">Edit</button> <button class="btn btn-danger btn-sm" onclick="delCatalog(${c.id})"><i class="fas fa-trash"></i></button></div></div>`); }
     function openCatalogModal(id=null) { document.getElementById('modalCat').style.display='flex'; if(id){const c=db.catalog.find(x=>x.id==id); document.getElementById('c_id').value=c.id; document.getElementById('c_name').value=c.name; document.getElementById('c_vendor').value=c.vendor; document.getElementById('c_cost').value=c.cost;}else{document.getElementById('c_id').value="NEW";} }
     function saveCatalog(){ const id=document.getElementById('c_id').value; const obj={id:id=="NEW"?Date.now():Number(id),name:document.getElementById('c_name').value,vendor:document.getElementById('c_vendor').value,cost:Number(document.getElementById('c_cost').value)}; if(id=="NEW") db.catalog.push(obj); else db.catalog[db.catalog.findIndex(x=>x.id==id)]=obj; saveData(); closeModals(); }
-    function renderTeam() { const l=document.getElementById('teamList'); l.innerHTML=""; db.team.forEach(t => l.innerHTML += `<div class="list-card"><div><strong>${t.name}</strong><br><small>${t.role}</small></div><button class="btn btn-outline btn-sm" onclick="openTeamModal(${t.id})">Edit</button></div>`); }
-    function saveData() { dbRef.ref().set(db); }
+    function renderTeam() { const l=document.getElementById('teamList'); l.innerHTML=""; db.team.forEach(t => l.innerHTML += `<div class="list-card"><div><strong>${t.name}</strong><br><small>${t.role}</small></div><div><button class="btn btn-outline btn-sm" onclick="openTeamModal(${t.id})">Edit</button> <button class="btn btn-danger btn-sm" onclick="delTeam(${t.id})"><i class="fas fa-trash"></i></button></div></div>`); }
+    
+    // FIX: Delete functions
+    function delJob(id){ if(confirm('Delete?')){ db.jobs=db.jobs.filter(x=>x.id!=id); saveData(); } }
+    function delCatalog(id){ if(confirm('Delete?')){ db.catalog=db.catalog.filter(x=>x.id!=id); saveData(); } }
+    function delTeam(id){ if(confirm('Delete?')){ db.team=db.team.filter(x=>x.id!=id); saveData(); } }
+
+    function saveData() { dbRef.ref().set(db); notify("Saved!"); }
     function closeModals() { document.querySelectorAll('.modal-overlay').forEach(e=>e.style.display='none'); }
     function handleCSV(i) { const f=i.files[0]; if(!f)return; const r=new FileReader(); r.onload=e=>{ e.target.result.split('\n').slice(1).forEach((row,idx)=>{if(row.trim()){const c=row.split(','); db.jobs.push({id:Date.now()+idx, name:c[1]||"Lead", value:0, status:'Lead'});}}); saveData(); i.value=""; }; r.readAsText(f); }
     function nav(v,e) { document.querySelectorAll('.view-section').forEach(x=>x.classList.remove('active')); document.getElementById('view-'+v).classList.add('active'); if(e){document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); e.classList.add('active');} if(v=='calendar')setTimeout(()=>calendar.render(),200); }
+    function notify(m) { const t=document.createElement('div'); t.className='toast'; t.innerHTML=`<i class="fas fa-check"></i> ${m}`; document.getElementById('toast-container').appendChild(t); setTimeout(()=>t.remove(),3000); }
 </script>
 </body>
 </html>
