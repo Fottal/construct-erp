@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ConstructAI - RBAC Edition</title>
+    <title>ConstructAI - Verified</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -24,83 +24,94 @@
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
-        /* --- AUTH SCREEN --- */
+        /* --- LOGIN --- */
         #auth-screen { position: fixed; inset:0; background: var(--sidebar); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
         .login-card { background: white; padding: 30px; border-radius: 16px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
         .login-input { width: 100%; padding: 14px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; }
+
+        /* --- LAYOUT --- */
+        #admin-interface { display: none; width: 100%; height: 100%; position: relative; }
         
-        /* --- ADMIN LAYOUT (Management) --- */
-        #admin-interface { display: none; width: 100%; height: 100%; }
-        .sidebar { width: 260px; background: var(--sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; }
-        .brand { padding: 24px; font-size: 1.25rem; font-weight: 800; border-bottom: 1px solid #1e293b; display: flex; align-items: center; gap: 12px; }
+        .sidebar { width: 260px; background: var(--sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; transition: transform 0.3s ease; }
+        .brand { padding: 24px; font-size: 1.25rem; font-weight: 800; border-bottom: 1px solid #1e293b; display: flex; align-items: center; justify-content: space-between; }
         .nav-menu { flex: 1; padding-top: 20px; }
-        .nav-item { padding: 12px 24px; cursor: pointer; color: #94a3b8; display: flex; gap: 12px; align-items: center; font-weight: 500; transition: 0.2s; border-left: 3px solid transparent; }
+        .nav-item { padding: 14px 24px; cursor: pointer; color: #94a3b8; display: flex; gap: 12px; align-items: center; font-weight: 500; border-left: 4px solid transparent; }
         .nav-item:hover, .nav-item.active { background: #1e293b; color: white; border-left-color: var(--primary); }
-        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; width: 100%; }
+        .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; height: 70px; }
         .content { flex: 1; padding: 32px; overflow-y: auto; }
 
-        /* --- CREW LAYOUT (Field App) --- */
+        /* --- MOBILE MENU --- */
+        .mobile-toggle { display: none; font-size: 1.5rem; cursor: pointer; color: var(--sidebar); }
+        
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; left: 0; top: 0; height: 100%; z-index: 2000; transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .mobile-toggle { display: block; }
+            .content { padding: 15px; }
+            .modal { width: 100%; height: 100%; border-radius: 0; }
+        }
+
+        /* --- CREW INTERFACE --- */
         #crew-interface { display: none; width: 100%; height: 100%; flex-direction: column; background: #f1f5f9; overflow-y: auto; padding: 20px; }
         .crew-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .crew-welcome { font-size: 1.5rem; font-weight: 800; color: var(--sidebar); }
-        .crew-logout { color: var(--danger); font-weight: 600; cursor: pointer; }
         
-        .job-card-mobile { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border-left: 6px solid var(--primary); }
-        .job-card-mobile.status-Lead { border-left-color: var(--primary); }
+        .job-card-mobile { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 6px solid var(--primary); }
         .job-card-mobile.status-Scheduled { border-left-color: var(--warning); }
         .job-card-mobile.status-InProgress { border-left-color: #7e22ce; }
-        .job-card-mobile.status-Done { border-left-color: var(--success); opacity: 0.7; }
+        .job-card-mobile.status-Done { border-left-color: var(--success); opacity: 0.6; }
 
-        .mobile-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #f1f5f9; }
-
-        /* --- SHARED COMPONENTS --- */
-        .btn { padding: 10px 16px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; transition: 0.2s; }
+        /* --- COMPONENTS --- */
+        .btn { padding: 10px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: white; } 
-        .btn-outline { background: white; border-color: #cbd5e1; color: var(--text); }
+        .btn-outline { background: white; border: 1px solid #cbd5e1; color: var(--text); }
         .btn-success { background: var(--success); color: white; }
 
-        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 32px; }
-        .stat-card { background: var(--surface); padding: 24px; border-radius: 12px; border: 1px solid var(--border); }
-        .stat-val { font-size: 2rem; font-weight: 700; margin-top: 8px; color: var(--sidebar); }
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 32px; }
+        .stat-card { background: var(--surface); padding: 20px; border-radius: 12px; border: 1px solid var(--border); }
+        .stat-val { font-size: 2rem; font-weight: 700; margin-top: 5px; color: var(--sidebar); }
 
         .badge { padding: 4px 12px; border-radius: 99px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
         .badge-Lead { background: #e0f2fe; color: #0369a1; } .badge-Scheduled { background: #fff7ed; color: #c2410c; } .badge-InProgress { background: #faf5ff; color: #7e22ce; } .badge-Done { background: #f0fdf4; color: #15803d; }
 
-        /* Calendar & Modal overrides from previous version omitted for brevity but assumed included */
-        #calendar { background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border); height: 100%; min-height: 600px; }
-        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px); z-index: 2000; justify-content: center; align-items: center; }
+        /* Calendar */
+        #calendar { background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--border); min-height: 600px; }
+
+        /* Modals */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px); z-index: 3000; justify-content: center; align-items: center; }
         .modal { background: var(--surface); padding: 32px; width: 100%; max-width: 600px; border-radius: 16px; max-height: 90vh; overflow-y: auto; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0 24px 0; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0 20px 0; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size:16px; }
 
         .view-section { display: none; } .view-section.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Mobile Media Query */
-        @media (max-width: 768px) {
-            .sidebar { display: none; }
-            .header { padding: 15px; }
-            .content { padding: 15px; }
-        }
+        
+        /* Overlay for mobile sidebar */
+        #sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1999; }
     </style>
 </head>
 <body>
 
 <div id="auth-screen">
     <div class="login-card">
-        <div style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;"><i class="fas fa-shield-alt"></i></div>
+        <div style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;"><i class="fas fa-hard-hat"></i></div>
         <h2 style="margin-top: 0;">ConstructAI</h2>
-        <p style="color:#64748b; margin-bottom:20px;">Secure ERP Login</p>
+        <p style="color:#64748b; margin-bottom:20px;">Management & Crew Login</p>
         <input type="email" id="email" class="login-input" placeholder="Email">
         <input type="password" id="password" class="login-input" placeholder="Password">
-        <button class="btn btn-primary" style="width: 100%; font-size:1rem;" onclick="authLogin()">Sign In</button>
-        <div style="margin-top: 20px; font-size: 0.9rem; color: #64748b; cursor: pointer;" onclick="authRegister()">First time? Create Admin Account</div>
+        <button class="btn btn-primary" style="width: 100%; font-size:1rem; height: 50px;" onclick="authLogin()">Sign In</button>
+        <div style="margin-top: 20px; font-size: 0.9rem; color: #64748b; cursor: pointer;" onclick="authRegister()">New Admin? Register Here</div>
     </div>
 </div>
 
 <div id="admin-interface">
-    <div class="sidebar">
-        <div class="brand"><i class="fas fa-layer-group"></i> AdminView</div>
+    <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <div class="sidebar" id="admin-sidebar">
+        <div class="brand">
+            <span><i class="fas fa-layer-group"></i> Admin</span>
+            <i class="fas fa-times mobile-toggle" style="color:white; font-size:1.2rem;" onclick="toggleSidebar()"></i>
+        </div>
         <div class="nav-menu">
             <div class="nav-item active" onclick="nav('dashboard', this)"><i class="fas fa-chart-pie"></i> Dashboard</div>
             <div class="nav-item" onclick="nav('calendar', this)"><i class="fas fa-calendar-check"></i> Schedule</div>
@@ -108,34 +119,38 @@
             <div class="nav-item" onclick="nav('team', this)"><i class="fas fa-users-cog"></i> Workforce</div>
         </div>
         <div style="padding: 24px; border-top: 1px solid #1e293b; display:flex; justify-content:space-between;">
-            <span id="admin-email" style="font-size:0.8rem; color:#94a3b8"></span>
-            <i class="fas fa-sign-out-alt" style="cursor:pointer;" onclick="authLogout()"></i>
+            <span id="admin-email" style="font-size:0.8rem; color:#94a3b8; overflow:hidden; text-overflow:ellipsis;"></span>
+            <i class="fas fa-sign-out-alt" style="cursor:pointer; color:white;" onclick="authLogout()"></i>
         </div>
     </div>
 
     <div class="main">
         <div class="header">
-            <h2 style="margin:0">Management Console</h2>
+            <div style="display:flex; align-items:center; gap:15px;">
+                <i class="fas fa-bars mobile-toggle" onclick="toggleSidebar()"></i>
+                <h2 style="margin:0; font-size:1.2rem;">Console</h2>
+            </div>
         </div>
         <div class="content">
             <div id="view-dashboard" class="view-section active">
                 <div class="card-grid">
-                    <div class="stat-card"><div class="stat-val" style="color:var(--primary)" id="kpi-rev">$0</div><div class="stat-label">Pipeline</div></div>
-                    <div class="stat-card"><div class="stat-val" style="color:var(--danger)" id="kpi-cost">$0</div><div class="stat-label">Costs</div></div>
-                    <div class="stat-card"><div class="stat-val" style="color:var(--success)" id="kpi-profit">$0</div><div class="stat-label">Net Profit</div></div>
+                    <div class="stat-card"><div class="stat-val" style="color:var(--primary)" id="kpi-rev">$0</div><div style="font-size:0.8rem; color:#64748b">PIPELINE</div></div>
+                    <div class="stat-card"><div class="stat-val" style="color:var(--success)" id="kpi-profit">$0</div><div style="font-size:0.8rem; color:#64748b">NET PROFIT</div></div>
                 </div>
-                <div style="height: 400px; background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
+                <div style="height: 400px; background: white; padding: 10px; border-radius: 12px; border: 1px solid var(--border);">
                     <canvas id="finChart"></canvas>
                 </div>
             </div>
             <div id="view-calendar" class="view-section"><div id="calendar"></div></div>
             <div id="view-jobs" class="view-section">
-                <button class="btn btn-primary" onclick="openJobModal()" style="margin-bottom:20px"><i class="fas fa-plus"></i> New Job</button>
+                <button class="btn btn-primary" onclick="openJobModal()" style="margin-bottom:20px; width:100%"><i class="fas fa-plus"></i> New Job</button>
                 <div id="adminJobList"></div>
             </div>
             <div id="view-team" class="view-section">
-                <p style="color:#64748b">Add Crew members here. They will use their Email to log in to the Field App.</p>
-                <button class="btn btn-primary" onclick="openTeamModal()" style="margin-bottom:20px"><i class="fas fa-user-plus"></i> Add User</button>
+                <div style="background:#e0f2fe; padding:15px; border-radius:8px; margin-bottom:20px; color:#0369a1; font-size:0.9rem;">
+                    <strong>Tip:</strong> Add a user here. Then, have them log in with this email to see the Crew App.
+                </div>
+                <button class="btn btn-primary" onclick="openTeamModal()" style="margin-bottom:20px; width:100%"><i class="fas fa-user-plus"></i> Add User</button>
                 <div id="teamList"></div>
             </div>
         </div>
@@ -146,16 +161,13 @@
     <div class="crew-header">
         <div>
             <div style="font-size:0.8rem; color:#64748b; text-transform:uppercase; font-weight:bold;">Field App</div>
-            <div class="crew-welcome">Hello, <span id="crew-name">Crew</span></div>
+            <div class="crew-welcome">Hi, <span id="crew-name">Crew</span></div>
         </div>
-        <div class="crew-logout" onclick="authLogout()"><i class="fas fa-sign-out-alt"></i> Exit</div>
+        <button class="btn btn-outline btn-sm" onclick="authLogout()">Log Out</button>
     </div>
-
     <div id="crew-notifications" style="margin-bottom:20px;"></div>
-
     <h3 style="margin-bottom:15px;">My Assignments</h3>
-    <div id="crewJobList">
-        </div>
+    <div id="crewJobList"></div>
 </div>
 
 <div id="modalJob" class="modal-overlay">
@@ -183,17 +195,14 @@
         <input type="hidden" id="t_id">
         <label>Full Name</label><input type="text" id="t_name">
         <label>System Role</label>
-        <select id="t_role">
-            <option value="Admin">Management (Full Access)</option>
-            <option value="Crew">Crew (Field App Only)</option>
-        </select>
-        <label>Login Email</label><input type="email" id="t_email" placeholder="Used for login">
+        <select id="t_role"><option value="Admin">Admin (Full Access)</option><option value="Crew">Crew (Field App)</option></select>
+        <label>Login Email</label><input type="email" id="t_email">
         <div style="display:flex; gap:10px;"><button class="btn btn-primary" style="flex:1" onclick="saveTeam()">Save User</button><button class="btn btn-outline" style="flex:1" onclick="closeModals()">Cancel</button></div>
     </div>
 </div>
 
 <script>
-    // --- CONFIGURATION ---
+    // --- 1. CONFIGURATION (PASTE KEYS HERE) ---
     const firebaseConfig = {
         apiKey: "AIzaSyA2HNjITt0civU2SJ4I40XxdnWxryQRDO4",
         authDomain: "construct-erp.firebaseapp.com",
@@ -203,7 +212,15 @@
         messagingSenderId: "737357744238",
         appId: "1:737357744238:web:0942d58665f1709278be7f"
     };
-    firebase.initializeApp(firebaseConfig);
+
+    // Initialize with error check
+    try {
+        firebase.initializeApp(firebaseConfig);
+        if (firebaseConfig.apiKey === "YOUR_API_KEY_HERE") {
+            alert("⚠️ SYSTEM PAUSED: You must open the code and paste your Firebase Config keys at the bottom of index.html.");
+        }
+    } catch(e) { console.error(e); }
+
     const auth = firebase.auth();
     const dbRef = firebase.database();
 
@@ -211,7 +228,7 @@
     let currentUser = null;
     let calendar, chart;
 
-    // --- AUTHENTICATION & RBAC ROUTING ---
+    // --- 2. AUTH FLOW ---
     auth.onAuthStateChanged(user => {
         if(user) {
             document.getElementById('auth-screen').style.display = 'none';
@@ -227,25 +244,21 @@
     function authRegister() { auth.createUserWithEmailAndPassword(document.getElementById('email').value, document.getElementById('password').value).catch(e=>alert(e.message)); }
     function authLogout() { auth.signOut(); location.reload(); }
 
+    // --- 3. INIT APP & RBAC ---
     function initApp(email) {
-        // Listen to DB
         dbRef.ref().on('value', snap => {
             const v = snap.val() || {};
             db.jobs = v.jobs ? Object.values(v.jobs) : [];
             db.team = v.team ? Object.values(v.team) : [];
             
-            // DETERMINE ROLE
-            // We look for the email in our Team list. 
-            // If not found, default to Admin (for first setup).
+            // Role Check
             const profile = db.team.find(t => t.email.toLowerCase() === email.toLowerCase());
             
             if (!profile || profile.role === 'Admin') {
-                // LOAD MANAGEMENT UI
                 document.getElementById('admin-interface').style.display = 'flex';
                 document.getElementById('admin-email').innerText = email;
                 initAdminFeatures();
             } else {
-                // LOAD CREW UI
                 currentUser = profile;
                 document.getElementById('crew-interface').style.display = 'flex';
                 document.getElementById('crew-name').innerText = profile.name.split(' ')[0];
@@ -254,13 +267,8 @@
         });
     }
 
-    // --- MANAGEMENT LOGIC ---
-    function initAdminFeatures() {
-        renderAdminJobs();
-        renderTeam();
-        renderDashboard();
-        initCalendar();
-    }
+    // --- 4. ADMIN FEATURES ---
+    function initAdminFeatures() { renderAdminJobs(); renderTeam(); renderDashboard(); initCalendar(); }
 
     function renderAdminJobs() {
         const list = document.getElementById('adminJobList'); list.innerHTML = "";
@@ -268,12 +276,8 @@
             const fName = db.team.find(t=>t.id==j.foremanId)?.name || "Unassigned";
             list.innerHTML += `
             <div style="background:white; padding:15px; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <span class="badge badge-${j.status}">${j.status}</span>
-                    <strong>${j.name}</strong>
-                    <div style="font-size:0.8rem; color:#64748b">Assigned: ${fName}</div>
-                </div>
-                <button class="btn btn-outline btn-sm" onclick="openJobModal(${j.id})">Edit</button>
+                <div><span class="badge badge-${j.status}">${j.status}</span> <strong>${j.name}</strong><div style="font-size:0.8rem; color:#64748b; margin-top:4px;">${fName}</div></div>
+                <button class="btn btn-outline btn-sm" onclick="openJobModal(${j.id})"><i class="fas fa-pen"></i></button>
             </div>`;
         });
     }
@@ -283,37 +287,39 @@
         db.team.forEach(t => {
             list.innerHTML += `
             <div style="background:white; padding:15px; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between;">
-                <div>
-                    <strong>${t.name}</strong>
-                    <div style="font-size:0.8rem; color:#64748b">${t.role} | ${t.email}</div>
-                </div>
-                <button class="btn btn-outline btn-sm" onclick="openTeamModal(${t.id})">Edit</button>
+                <div><strong>${t.name}</strong><div style="font-size:0.8rem; color:#64748b">${t.role}</div></div>
+                <button class="btn btn-outline btn-sm" onclick="openTeamModal(${t.id})"><i class="fas fa-pen"></i></button>
             </div>`;
         });
     }
 
-    // --- CREW LOGIC (MOBILE FIRST) ---
+    function renderDashboard(){
+        const rev=db.jobs.reduce((a,b)=>a+(b.value||0),0); document.getElementById('kpi-rev').innerText="$"+rev.toLocaleString();
+        if(chart)chart.destroy(); chart=new Chart(document.getElementById('finChart'),{type:'bar',data:{labels:['Rev'],datasets:[{label:'Pipeline',data:[rev],backgroundColor:'#2563eb'}]},options:{maintainAspectRatio:false}});
+    }
+
+    function initCalendar(){
+        if(calendar)return;
+        calendar=new FullCalendar.Calendar(document.getElementById('calendar'),{
+            initialView: window.innerWidth < 768 ? 'listWeek' : 'timeGridWeek',
+            headerToolbar:{left:'prev,next',center:'title',right: window.innerWidth < 768 ? '' : 'dayGridMonth,timeGridWeek'},
+            height:'100%',
+            events: db.jobs.filter(j=>j.start).map(j=>({title:j.name,start:j.start,end:j.end,color:j.status=='Scheduled'?'#f59e0b':'#7e22ce'}))
+        });
+        calendar.render();
+    }
+
+    // --- 5. CREW FEATURES ---
     function renderCrewDashboard() {
         const list = document.getElementById('crewJobList'); list.innerHTML = "";
         const notif = document.getElementById('crew-notifications'); notif.innerHTML = "";
-
-        // FILTER: Only show jobs assigned to this logged-in Crew member
         const myJobs = db.jobs.filter(j => j.foremanId === currentUser.id && j.status !== 'Lead');
 
-        if(myJobs.length === 0) {
-            list.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;">No active assignments. Enjoy the break! ☕</div>`;
-            return;
-        }
+        if(myJobs.length === 0) { list.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;">No active assignments.</div>`; return; }
 
         myJobs.forEach(j => {
-            // Notification Logic: If scheduled but not started
-            if(j.status === 'Scheduled') {
-                notif.innerHTML = `<div style="background:#fff7ed; color:#c2410c; padding:15px; border-radius:8px; border-left:4px solid #f97316; margin-bottom:15px;">🔔 New Assignment: ${j.name}</div>`;
-            }
-
-            // Map Link
-            const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(j.address || '')}`;
-
+            if(j.status === 'Scheduled') notif.innerHTML = `<div style="background:#fff7ed; color:#c2410c; padding:15px; border-radius:8px; border-left:4px solid #f97316; margin-bottom:15px;">🔔 New Job: ${j.name}</div>`;
+            
             list.innerHTML += `
             <div class="job-card-mobile status-${j.status}">
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
@@ -321,50 +327,38 @@
                     <span style="font-size:0.8rem; font-weight:bold;">${new Date(j.start).toLocaleDateString()}</span>
                 </div>
                 <h2 style="margin:0 0 5px 0; font-size:1.2rem;">${j.name}</h2>
-                <p style="color:#64748b; margin:0 0 15px 0; font-size:0.9rem;">${j.address || 'No address provided'}</p>
-                
-                <div class="mobile-actions">
-                    <a href="${mapUrl}" target="_blank" class="btn btn-outline" style="text-decoration:none;"><i class="fas fa-map-marker-alt"></i> Map</a>
-                    ${getActionBtn(j)}
+                <p style="color:#64748b; margin:0 0 15px 0; font-size:0.9rem;">${j.address || 'No address'}</p>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; border-top:1px solid #f1f5f9; padding-top:15px;">
+                    <a href="https://maps.google.com/?q=${encodeURIComponent(j.address)}" target="_blank" class="btn btn-outline" style="text-decoration:none">Map</a>
+                    ${j.status==='Scheduled' ? `<button class="btn btn-primary" onclick="setStatus(${j.id},'InProgress')">Start</button>` : 
+                      j.status==='InProgress' ? `<button class="btn btn-success" onclick="setStatus(${j.id},'Done')">Finish</button>` : 
+                      `<button class="btn btn-outline" disabled>Done</button>`}
                 </div>
             </div>`;
         });
     }
 
-    function getActionBtn(job) {
-        if(job.status === 'Scheduled') return `<button class="btn btn-primary" onclick="updateStatus(${job.id}, 'InProgress')">Start Job</button>`;
-        if(job.status === 'InProgress') return `<button class="btn btn-success" onclick="updateStatus(${job.id}, 'Done')">Finish Job</button>`;
-        return `<button class="btn btn-outline" disabled>Completed</button>`;
+    function setStatus(id, stat) {
+        const job = db.jobs.find(j=>j.id===id);
+        if(job) { job.status = stat; dbRef.ref('jobs').set(arrToObj(db.jobs)); }
     }
 
-    function updateStatus(jid, status) {
-        const idx = db.jobs.findIndex(j=>j.id === jid);
-        if(idx !== -1) {
-            db.jobs[idx].status = status;
-            dbRef.ref('jobs').set(arrToObj(db.jobs)); // Save to Cloud
+    // --- 6. UTILS ---
+    function toggleSidebar() {
+        const sb = document.getElementById('admin-sidebar');
+        const ov = document.getElementById('sidebar-overlay');
+        if(sb.style.transform === 'translateX(0px)') {
+            sb.style.transform = 'translateX(-100%)'; ov.style.display = 'none';
+        } else {
+            sb.style.transform = 'translateX(0px)'; ov.style.display = 'block';
         }
     }
 
-    // --- UTILS & MODALS ---
-    function saveJob() {
-        const id=document.getElementById('j_id').value; const obj={id:id=="NEW"?Date.now():Number(id), name:document.getElementById('j_name').value, value:Number(document.getElementById('j_val').value), status:document.getElementById('j_status').value, start:document.getElementById('j_start').value, end:document.getElementById('j_end').value, address:document.getElementById('j_address').value, foremanId:document.getElementById('j_foreman').value};
-        if(id=="NEW") db.jobs.push(obj); else db.jobs[db.jobs.findIndex(x=>x.id==id)]=obj;
-        dbRef.ref('jobs').set(arrToObj(db.jobs)); closeModals();
-    }
-
-    function saveTeam() {
-        const id=document.getElementById('t_id').value; const obj={id:id=="NEW"?Date.now():Number(id), name:document.getElementById('t_name').value, role:document.getElementById('t_role').value, email:document.getElementById('t_email').value};
-        if(id=="NEW") db.team.push(obj); else db.team[db.team.findIndex(x=>x.id==id)]=obj;
-        dbRef.ref('team').set(arrToObj(db.team)); closeModals();
-    }
-
     function openJobModal(id=null) { document.getElementById('modalJob').style.display='flex'; const s=document.getElementById('j_foreman'); s.innerHTML='<option value="">--</option>'; db.team.forEach(t=>s.innerHTML+=`<option value="${t.id}">${t.name}</option>`); if(id){const j=db.jobs.find(x=>x.id==id); document.getElementById('j_id').value=j.id; document.getElementById('j_name').value=j.name; document.getElementById('j_val').value=j.value; document.getElementById('j_status').value=j.status; document.getElementById('j_start').value=j.start; document.getElementById('j_end').value=j.end; document.getElementById('j_address').value=j.address; document.getElementById('j_foreman').value=j.foremanId;}else{document.getElementById('j_id').value="NEW";} }
+    function saveJob() { const id=document.getElementById('j_id').value; const obj={id:id=="NEW"?Date.now():Number(id), name:document.getElementById('j_name').value, value:Number(document.getElementById('j_val').value), status:document.getElementById('j_status').value, start:document.getElementById('j_start').value, end:document.getElementById('j_end').value, address:document.getElementById('j_address').value, foremanId:document.getElementById('j_foreman').value}; if(id=="NEW") db.jobs.push(obj); else db.jobs[db.jobs.findIndex(x=>x.id==id)]=obj; dbRef.ref('jobs').set(arrToObj(db.jobs)); closeModals(); }
     function openTeamModal(id=null) { document.getElementById('modalTeam').style.display='flex'; if(id){const t=db.team.find(x=>x.id==id); document.getElementById('t_id').value=t.id; document.getElementById('t_name').value=t.name; document.getElementById('t_role').value=t.role; document.getElementById('t_email').value=t.email;}else{document.getElementById('t_id').value="NEW";} }
-    
-    function renderDashboard(){const rev=db.jobs.reduce((a,b)=>a+(b.value||0),0); document.getElementById('kpi-rev').innerText="$"+rev.toLocaleString(); if(chart)chart.destroy(); chart=new Chart(document.getElementById('finChart'),{type:'bar',data:{labels:['Rev'],datasets:[{label:'Rev',data:[rev],backgroundColor:'#2563eb'}]},options:{maintainAspectRatio:false}});}
-    function initCalendar(){if(calendar)return; calendar=new FullCalendar.Calendar(document.getElementById('calendar'),{initialView:'timeGridWeek',headerToolbar:{left:'prev,next',center:'title',right:'dayGridMonth,timeGridWeek'},events:db.jobs.map(j=>({title:j.name,start:j.start,end:j.end,color:j.status=='Scheduled'?'#f59e0b':'#7e22ce'}))}); calendar.render();}
-    function nav(v,e){document.querySelectorAll('.view-section').forEach(x=>x.classList.remove('active')); document.getElementById('view-'+v).classList.add('active'); document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); e.classList.add('active'); if(v=='calendar')setTimeout(()=>calendar.render(),200);}
-    
+    function saveTeam() { const id=document.getElementById('t_id').value; const obj={id:id=="NEW"?Date.now():Number(id), name:document.getElementById('t_name').value, role:document.getElementById('t_role').value, email:document.getElementById('t_email').value}; if(id=="NEW") db.team.push(obj); else db.team[db.team.findIndex(x=>x.id==id)]=obj; dbRef.ref('team').set(arrToObj(db.team)); closeModals(); }
+    function nav(v,e){document.querySelectorAll('.view-section').forEach(x=>x.classList.remove('active')); document.getElementById('view-'+v).classList.add('active'); document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); e.classList.add('active'); toggleSidebar(); if(v=='calendar')setTimeout(()=>calendar.render(),200);}
     function closeModals() { document.querySelectorAll('.modal-overlay').forEach(e=>e.style.display='none'); }
     function arrToObj(a) { const o={}; a.forEach(x=>o[x.id]=x); return o; }
 </script>
