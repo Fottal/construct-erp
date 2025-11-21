@@ -2,202 +2,229 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ConstructAI - Secure ERP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConstructAI - SaaS Edition</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-    
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
     <style>
-        :root { --primary: #2563eb; --dark: #0f172a; --bg: #f1f5f9; --surface: #ffffff; --text: #334155; --border: #e2e8f0; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; }
+        :root {
+            --primary: #2563eb; --primary-dark: #1e40af;
+            --bg: #f1f5f9; --surface: #ffffff; --sidebar: #0f172a;
+            --text: #334155; --border: #e2e8f0;
+            --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+        }
         * { box-sizing: border-box; outline: none; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
-        /* --- LOGIN SCREEN --- */
-        #auth-screen { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--dark); z-index: 5000; display: flex; justify-content: center; align-items: center; flex-direction: column; }
-        .login-box { background: white; padding: 40px; border-radius: 16px; width: 400px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .login-logo { font-size: 2rem; color: var(--primary); margin-bottom: 10px; }
-        .login-input { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; }
-        .login-btn { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; }
-        .login-btn:hover { background: #1d4ed8; }
-        .auth-toggle { margin-top: 15px; color: #64748b; cursor: pointer; font-size: 0.9rem; }
-        .auth-toggle:hover { text-decoration: underline; }
-
-        /* --- APP LAYOUT --- */
-        #app-screen { display: none; width: 100%; height: 100%; display: flex; } /* Hidden by default */
-        .sidebar { width: 260px; background: var(--dark); color: white; display: flex; flex-direction: column; flex-shrink:0; }
-        .brand { padding: 25px; font-size: 1.2rem; font-weight: 800; border-bottom: 1px solid #1e293b; display: flex; align-items: center; gap: 10px; }
-        .nav-menu { flex: 1; padding-top: 10px; }
-        .nav-item { padding: 12px 25px; cursor: pointer; color: #94a3b8; display: flex; gap: 12px; align-items: center; transition: 0.2s; font-weight: 500; border-left: 3px solid transparent; }
-        .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
-        .nav-item.active { background: #1e293b; color: white; border-left-color: var(--primary); }
-        .user-profile { padding: 20px; border-top: 1px solid #1e293b; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; }
-
+        /* --- AUTH SCREEN --- */
+        #auth-screen { position: fixed; inset:0; background: var(--sidebar); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+        .login-card { background: white; padding: 40px; border-radius: 16px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .login-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 8px; }
+        
+        /* --- LAYOUT --- */
+        #app-screen { display: none; width: 100%; height: 100%; display: flex; }
+        .sidebar { width: 260px; background: var(--sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; }
+        .brand { padding: 24px; font-size: 1.25rem; font-weight: 800; border-bottom: 1px solid #1e293b; display: flex; align-items: center; gap: 12px; }
+        
+        .nav-menu { flex: 1; padding-top: 20px; }
+        .nav-item { padding: 12px 24px; cursor: pointer; color: #94a3b8; display: flex; gap: 12px; align-items: center; font-weight: 500; transition: 0.2s; border-left: 3px solid transparent; }
+        .nav-item:hover, .nav-item.active { background: #1e293b; color: white; border-left-color: var(--primary); }
+        
         .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .header { padding: 20px 30px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .page-title { font-size: 1.5rem; font-weight: 800; color: var(--dark); }
-        .content-area { flex: 1; padding: 30px; overflow-y: auto; }
+        .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 1.5rem; font-weight: 700; color: var(--sidebar); }
+        
+        .content { flex: 1; padding: 32px; overflow-y: auto; }
 
         /* --- COMPONENTS --- */
-        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: var(--surface); padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
-        .stat-val { font-size: 1.8rem; font-weight: 800; margin-top: 5px; color: var(--dark); }
-        .stat-lbl { font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: #64748b; }
-
-        .list-container { display: flex; flex-direction: column; gap: 10px; }
-        .list-item { background: var(--surface); padding: 18px; border: 1px solid var(--border); border-radius: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-        .list-item:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
-        .badge-Lead { background: #e0f2fe; color: #0284c7; } .badge-Scheduled { background: #fef3c7; color: #b45309; } .badge-InProgress { background: #f3e8ff; color: #7e22ce; } .badge-Done { background: #dcfce7; color: #166534; }
-
         .btn { padding: 10px 16px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; transition: 0.2s; }
-        .btn-primary { background: var(--primary); color: white; } .btn-primary:hover { background: #1d4ed8; }
-        .btn-outline { background: white; border-color: #cbd5e1; color: var(--text); }
+        .btn-primary { background: var(--primary); color: white; } .btn-primary:hover { background: var(--primary-dark); }
+        .btn-outline { background: white; border-color: #cbd5e1; color: var(--text); } .btn-outline:hover { border-color: var(--text); }
         .btn-danger { background: #fee2e2; color: var(--danger); }
         .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
 
-        #calendar { background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border); height: 600px; }
-        
-        /* UTILS */
-        .view-section { display: none; } .view-section.active { display: block; animation: fade 0.3s; } @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
-        .search-bar { padding: 10px 15px; border: 1px solid var(--border); border-radius: 8px; width: 250px; }
-        
-        #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; }
-        .toast { background: var(--dark); color: white; padding: 12px 20px; border-radius: 8px; animation: slideIn 0.3s; display: flex; gap: 10px; align-items: center; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        .toast.error { border-left: 4px solid var(--danger); } .toast.success { border-left: 4px solid var(--success); }
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 32px; }
+        .stat-card { background: var(--surface); padding: 24px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .stat-val { font-size: 2rem; font-weight: 700; margin-top: 8px; color: var(--sidebar); }
+        .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; font-weight: 600; }
 
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(2px); z-index: 1000; justify-content: center; align-items: center; }
-        .modal { background: var(--surface); padding: 30px; width: 550px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); max-height: 90vh; overflow-y: auto; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0 20px 0; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; }
-        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .list-stack { display: flex; flex-direction: column; gap: 16px; }
+        .list-card { background: var(--surface); padding: 20px; border: 1px solid var(--border); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+        .list-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+
+        .badge { padding: 4px 12px; border-radius: 99px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .badge-Lead { background: #e0f2fe; color: #0369a1; }
+        .badge-Scheduled { background: #fff7ed; color: #c2410c; }
+        .badge-InProgress { background: #faf5ff; color: #7e22ce; }
+        .badge-Done { background: #f0fdf4; color: #15803d; }
+
+        /* --- CALENDAR TWEAKS --- */
+        #calendar { background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border); height: 100%; min-height: 600px; }
+        .fc-event { cursor: pointer; border-radius: 4px; border: none; padding: 2px 4px; font-size: 0.85rem; }
+        .fc-timegrid-slot { height: 40px !important; } /* Taller slots */
+
+        /* --- MODALS --- */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px); z-index: 50; justify-content: center; align-items: center; }
+        .modal { background: var(--surface); padding: 32px; width: 100%; max-width: 600px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); max-height: 90vh; overflow-y: auto; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0 24px 0; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; }
+        
+        .view-section { display: none; } .view-section.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
 <div id="auth-screen">
-    <div class="login-box">
-        <div class="login-logo"><i class="fas fa-hard-hat"></i> JobMaster</div>
-        <h2 style="margin-top:0;">Welcome Back</h2>
-        <p style="color:#64748b; margin-bottom:20px;">Sign in to manage your construction empire</p>
-        
-        <input type="email" id="login-email" class="login-input" placeholder="Email Address">
-        <input type="password" id="login-pass" class="login-input" placeholder="Password">
-        
-        <button class="btn login-btn" onclick="handleAuth()">Sign In</button>
-        
-        <div class="auth-toggle" onclick="toggleAuthMode()" id="auth-toggle-text">Need an account? Create one</div>
+    <div class="login-card">
+        <div style="font-size: 2rem; color: var(--primary); margin-bottom: 1rem;"><i class="fas fa-layer-group"></i></div>
+        <h2 style="margin-top: 0;">ConstructAI SaaS</h2>
+        <input type="email" id="email" class="login-input" placeholder="name@company.com">
+        <input type="password" id="password" class="login-input" placeholder="Password">
+        <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="authLogin()">Sign In</button>
+        <div style="margin-top: 15px; font-size: 0.9rem; color: #64748b; cursor: pointer;" onclick="authRegister()">No account? Create one</div>
     </div>
 </div>
 
-<div id="app-screen" style="display:none;">
+<div id="app-screen">
     <div class="sidebar">
-        <div class="brand"><i class="fas fa-hard-hat"></i> JobMaster <span style="opacity:0.5; font-size:0.8em; margin-left:auto;">PRO</span></div>
+        <div class="brand"><i class="fas fa-layer-group"></i> ConstructAI</div>
         <div class="nav-menu">
             <div class="nav-item active" onclick="nav('dashboard', this)"><i class="fas fa-chart-pie"></i> Dashboard</div>
-            <div class="nav-item" onclick="nav('calendar', this)"><i class="fas fa-calendar-alt"></i> Schedule</div>
-            <div class="nav-item" onclick="nav('projects', this)"><i class="fas fa-clipboard-list"></i> Jobs</div>
-            <div class="nav-item" onclick="nav('catalog', this)"><i class="fas fa-tags"></i> Price Book</div>
+            <div class="nav-item" onclick="nav('calendar', this)"><i class="fas fa-calendar-check"></i> Schedule</div>
+            <div class="nav-item" onclick="nav('jobs', this)"><i class="fas fa-clipboard-list"></i> Jobs</div>
+            <div class="nav-item" onclick="nav('catalog', this)"><i class="fas fa-book-open"></i> Price Book</div>
             <div class="nav-item" onclick="nav('team', this)"><i class="fas fa-users"></i> Crew</div>
         </div>
-        <div class="user-profile">
-            <div id="user-email">user@example.com</div>
-            <i class="fas fa-sign-out-alt" style="cursor:pointer; color:#94a3b8;" onclick="logout()" title="Sign Out"></i>
+        <div style="padding: 24px; font-size: 0.85rem; color: #94a3b8; border-top: 1px solid #1e293b; display:flex; justify-content:space-between; align-items:center;">
+            <span id="user-display">User</span>
+            <i class="fas fa-sign-out-alt" style="cursor:pointer; color: white;" onclick="authLogout()"></i>
         </div>
     </div>
 
     <div class="main">
         <div class="header">
-            <div class="page-title" id="page-title">Dashboard</div>
-            <div id="sync-status" style="font-size:0.9rem; color:var(--success);"><i class="fas fa-circle"></i> Live</div>
+            <div class="page-title" id="page-header">Dashboard</div>
+            <div id="cloud-status" style="color: var(--success); font-size: 0.9rem; font-weight: 600;"><i class="fas fa-wifi"></i> Online</div>
         </div>
 
-        <div class="content-area">
+        <div class="content">
             <div id="view-dashboard" class="view-section active">
-                <div class="stat-grid">
-                    <div class="stat-card"><div class="stat-lbl">Pipeline</div><div class="stat-val" style="color:var(--primary)" id="kpi-rev">$0</div></div>
-                    <div class="stat-card"><div class="stat-lbl">Scheduled</div><div class="stat-val" style="color:var(--warning)" id="kpi-scheduled">0</div></div>
-                    <div class="stat-card"><div class="stat-lbl">Completed</div><div class="stat-val" style="color:var(--success)" id="kpi-done">0</div></div>
-                    <div class="stat-card"><div class="stat-lbl">Spend</div><div class="stat-val" style="color:var(--danger)" id="kpi-cost">$0</div></div>
+                <div class="card-grid">
+                    <div class="stat-card"><div class="stat-label">Est. Revenue</div><div class="stat-val" style="color:var(--primary)" id="kpi-rev">$0</div></div>
+                    <div class="stat-card"><div class="stat-label">Material Cost</div><div class="stat-val" style="color:var(--danger)" id="kpi-cost">$0</div></div>
+                    <div class="stat-card"><div class="stat-label">Net Profit</div><div class="stat-val" style="color:var(--success)" id="kpi-profit">$0</div></div>
+                    <div class="stat-card"><div class="stat-label">Margin</div><div class="stat-val" id="kpi-margin">0%</div></div>
                 </div>
-                <div style="height:300px; background:white; padding:20px; border-radius:12px; border:1px solid var(--border);"><canvas id="finChart"></canvas></div>
+                <div style="height: 400px; background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
+                    <canvas id="finChart"></canvas>
+                </div>
             </div>
 
-            <div id="view-calendar" class="view-section"><div id="calendar"></div></div>
+            <div id="view-calendar" class="view-section">
+                <div id="calendar"></div>
+            </div>
 
-            <div id="view-projects" class="view-section">
-                <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                    <input type="text" class="search-bar" placeholder="Search projects..." onkeyup="renderProjects(this.value)" style="margin:0;">
-                    <div style="display:flex; gap:10px;">
-                        <button class="btn btn-outline" onclick="document.getElementById('csvInput').click()"><i class="fas fa-file-import"></i> Import</button>
-                        <button class="btn btn-primary" onclick="openProjectModal()"><i class="fas fa-plus"></i> New</button>
-                    </div>
-                    <input type="file" id="csvInput" accept=".csv" style="display:none" onchange="handleCSV(this)">
+            <div id="view-jobs" class="view-section">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 24px;">
+                    <input type="text" placeholder="Search jobs..." style="margin:0; width: 300px;" onkeyup="renderJobs(this.value)">
+                    <button class="btn btn-primary" onclick="openJobModal()"><i class="fas fa-plus"></i> New Job</button>
                 </div>
-                <div id="projectList" class="list-container"></div>
+                <div id="jobList" class="list-stack"></div>
             </div>
 
             <div id="view-catalog" class="view-section">
-                <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                    <input type="text" class="search-bar" placeholder="Search items..." onkeyup="renderCatalog(this.value)" style="margin:0;">
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 24px;">
                     <button class="btn btn-primary" onclick="openCatalogModal()"><i class="fas fa-plus"></i> Add Item</button>
                 </div>
-                <div id="catalogList" class="list-container"></div>
+                <div id="catalogList" class="list-stack"></div>
             </div>
 
             <div id="view-team" class="view-section">
-                <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                    <input type="text" class="search-bar" placeholder="Search crew..." onkeyup="renderTeam(this.value)" style="margin:0;">
-                    <button class="btn btn-primary" onclick="openTeamModal()"><i class="fas fa-plus"></i> Add Member</button>
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 24px;">
+                    <button class="btn btn-primary" onclick="openTeamModal()"><i class="fas fa-user-plus"></i> Hire</button>
                 </div>
-                <div id="teamList" class="list-container"></div>
+                <div id="teamList" class="list-stack"></div>
             </div>
         </div>
     </div>
 </div>
 
-<div id="toast-container"></div>
-
-<div id="modalProject" class="modal-overlay">
+<div id="modalJob" class="modal-overlay">
     <div class="modal">
         <h2 style="margin-top:0">Job Details</h2>
-        <input type="hidden" id="p_id">
-        <label>Project Name</label><input type="text" id="p_name">
-        <label>Address</label><div style="display:flex; gap:10px;"><input type="text" id="p_address"><button class="btn btn-outline" onclick="openMap()" style="height:42px; margin-top:8px;"><i class="fas fa-map-marker-alt"></i></button></div>
-        <div class="row-2"><div><label>Value ($)</label><input type="number" id="p_val"></div><div><label>Status</label><select id="p_status"><option>Lead</option><option>Scheduled</option><option>InProgress</option><option>Done</option></select></div></div>
-        <div class="row-2"><div><label>Start</label><input type="date" id="p_start"></div><div><label>End</label><input type="date" id="p_end"></div></div>
-        <label>Foreman</label><select id="p_foreman"></select>
-        <div style="display:flex; gap:10px;"><button class="btn btn-primary" style="flex:1" onclick="saveProject()">Save</button><button class="btn btn-outline" style="flex:1" onclick="closeModals()">Cancel</button></div>
+        <input type="hidden" id="j_id">
+        
+        <label>Job Name / Client</label>
+        <input type="text" id="j_name" placeholder="e.g. Smith Kitchen Reno">
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div><label>Revenue ($)</label><input type="number" id="j_val"></div>
+            <div><label>Status</label>
+                <select id="j_status">
+                    <option value="Lead">Lead</option>
+                    <option value="Scheduled">Scheduled</option>
+                    <option value="InProgress">In Progress</option>
+                    <option value="Done">Done</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 24px;">
+            <label style="color: var(--primary);">Schedule</label>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <label style="font-size:0.8rem">Start Time</label>
+                    <input type="datetime-local" id="j_start" style="margin-bottom:0;">
+                </div>
+                <div>
+                    <label style="font-size:0.8rem">End Time</label>
+                    <input type="datetime-local" id="j_end" style="margin-bottom:0;">
+                </div>
+            </div>
+        </div>
+
+        <label>Assign Lead</label>
+        <select id="j_foreman"></select>
+
+        <div style="display: flex; gap: 10px;">
+            <button class="btn btn-primary" style="flex:1" onclick="saveJob()">Save Job</button>
+            <button class="btn btn-outline" style="flex:1" onclick="closeModals()">Cancel</button>
+        </div>
     </div>
 </div>
 
-<div id="modalCatalog" class="modal-overlay">
-    <div class="modal">
-        <h2 style="margin-top:0">Price Book Item</h2>
-        <input type="hidden" id="c_id">
-        <label>Item Name</label><input type="text" id="c_name">
-        <label>Vendor</label><input type="text" id="c_vendor">
-        <div class="row-2"><div><label>Cost ($)</label><input type="number" id="c_cost"></div><div><label>Unit</label><input type="text" id="c_unit"></div></div>
-        <div style="display:flex; gap:10px;"><button class="btn btn-primary" style="flex:1" onclick="saveCatalog()">Save</button><button class="btn btn-outline" style="flex:1" onclick="closeModals()">Cancel</button></div>
+<div id="modalMat" class="modal-overlay">
+    <div class="modal" style="max-width: 500px;">
+        <h2 style="margin-top:0">Add Materials</h2>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">Select items from your Price Book to add to this job's cost.</p>
+        <input type="hidden" id="m_jid">
+        
+        <label>Select Item</label>
+        <select id="m_item"></select>
+        
+        <label>Quantity</label>
+        <input type="number" id="m_qty" placeholder="1">
+        
+        <div style="display: flex; gap: 10px;">
+            <button class="btn btn-primary" style="flex:1" onclick="addMaterialToJob()">Add to Cost</button>
+            <button class="btn btn-outline" style="flex:1" onclick="closeModals()">Close</button>
+        </div>
     </div>
 </div>
 
-<div id="modalTeam" class="modal-overlay">
-    <div class="modal">
-        <h2 style="margin-top:0">Crew Member</h2>
-        <input type="hidden" id="t_id">
-        <label>Full Name</label><input type="text" id="t_name">
-        <label>Role</label><input type="text" id="t_role">
-        <div style="display:flex; gap:10px;"><button class="btn btn-primary" style="flex:1" onclick="saveTeam()">Save</button><button class="btn btn-outline" style="flex:1" onclick="closeModals()">Cancel</button></div>
-    </div>
-</div>
+<div id="modalCat" class="modal-overlay"><div class="modal"><h2>Catalog Item</h2><input type="hidden" id="c_id"><label>Name</label><input type="text" id="c_name"><label>Vendor</label><input type="text" id="c_vendor"><label>Unit Cost ($)</label><input type="number" id="c_cost"><button class="btn btn-primary" onclick="saveCatalog()">Save</button> <button class="btn btn-outline" onclick="closeModals()">Cancel</button></div></div>
+<div id="modalTeam" class="modal-overlay"><div class="modal"><h2>Crew Member</h2><input type="hidden" id="t_id"><label>Name</label><input type="text" id="t_name"><label>Role</label><input type="text" id="t_role"><button class="btn btn-primary" onclick="saveTeam()">Save</button> <button class="btn btn-outline" onclick="closeModals()">Cancel</button></div></div>
 
 <script>
-    // --- 1. CONFIGURATION ---
+    // --- 1. FIREBASE CONFIGURATION ---
     const firebaseConfig = {
         apiKey: "AIzaSyA2HNjITt0civU2SJ4I40XxdnWxryQRDO4",
         authDomain: "construct-erp.firebaseapp.com",
@@ -210,226 +237,195 @@
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    const database = firebase.database();
+    const dbRef = firebase.database();
 
-    let db = { projects: [], catalog: [], team: [] };
+    // --- 2. STATE ---
+    let db = { jobs: [], catalog: [], team: [] };
     let calendar, chart;
-    let isRegistering = false;
 
-    // --- 2. AUTHENTICATION LOGIC ---
+    // --- 3. AUTH & INIT ---
     auth.onAuthStateChanged(user => {
-        if (user) {
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('app-screen').style.display = 'flex'; // Use flex to maintain layout
-            document.getElementById('user-email').innerText = user.email;
-            initApp(); // Load data only when logged in
+        if(user) {
+            document.getElementById('auth-screen').style.display='none';
+            document.getElementById('app-screen').style.display='flex';
+            document.getElementById('user-display').innerText = user.email;
+            initApp();
         } else {
-            document.getElementById('auth-screen').style.display = 'flex';
-            document.getElementById('app-screen').style.display = 'none';
+            document.getElementById('auth-screen').style.display='flex';
+            document.getElementById('app-screen').style.display='none';
         }
     });
 
-    function handleAuth() {
-        const email = document.getElementById('login-email').value;
-        const pass = document.getElementById('login-pass').value;
-        if(!email || !pass) return notify("Please fill all fields", "error");
-
-        if(isRegistering) {
-            auth.createUserWithEmailAndPassword(email, pass)
-                .catch(err => notify(err.message, "error"));
-        } else {
-            auth.signInWithEmailAndPassword(email, pass)
-                .catch(err => notify("Invalid email or password", "error"));
-        }
+    function authLogin() {
+        const e = document.getElementById('email').value; const p = document.getElementById('password').value;
+        auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
     }
-
-    function logout() { auth.signOut(); }
-
-    function toggleAuthMode() {
-        isRegistering = !isRegistering;
-        const btn = document.querySelector('.login-btn');
-        const txt = document.getElementById('auth-toggle-text');
-        if(isRegistering) { btn.innerText = "Create Account"; txt.innerText = "Have an account? Sign In"; }
-        else { btn.innerText = "Sign In"; txt.innerText = "Need an account? Create one"; }
+    function authRegister() {
+        const e = document.getElementById('email').value; const p = document.getElementById('password').value;
+        auth.createUserWithEmailAndPassword(e, p).catch(err => alert(err.message));
     }
+    function authLogout() { auth.signOut(); }
 
-    // --- 3. APP INITIALIZATION ---
     function initApp() {
-        var calendarEl = document.getElementById('calendar');
-        if(!calendar) {
-            calendar = new FullCalendar.Calendar(calendarEl, { initialView: 'dayGridMonth', height: '100%', headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listWeek' } });
-            calendar.render();
-        }
-
-        database.ref().on('value', snap => {
-            const val = snap.val() || {};
-            db.projects = val.projects ? Object.values(val.projects) : [];
-            db.catalog = val.catalog ? Object.values(val.catalog) : [];
-            db.team = val.team ? Object.values(val.team) : [];
+        initCalendar();
+        dbRef.ref().on('value', snap => {
+            const v = snap.val() || {};
+            db.jobs = v.jobs ? Object.values(v.jobs) : [];
+            db.catalog = v.catalog ? Object.values(v.catalog) : [];
+            db.team = v.team ? Object.values(v.team) : [];
             refreshUI();
         });
     }
 
-    function refreshUI() {
-        renderProjects(); renderCatalog(); renderTeam(); renderDashboard(); updateCalendar();
+    // --- 4. CALENDAR (TIMEGRID) ---
+    function initCalendar() {
+        if(calendar) return;
+        const el = document.getElementById('calendar');
+        calendar = new FullCalendar.Calendar(el, {
+            initialView: 'timeGridWeek', // DEFAULT TO HOURLY VIEW
+            headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+            slotMinTime: '06:00:00', // Start at 6 AM
+            slotMaxTime: '21:00:00', // End at 9 PM
+            allDaySlot: true,
+            height: '100%',
+            events: [] // Filled by refreshUI
+        });
+        calendar.render();
     }
 
-    // --- 4. EDITABLE PRICE BOOK (CATALOG) ---
-    function openCatalogModal(id = null) {
-        document.getElementById('modalCatalog').style.display='flex';
-        if(id) {
-            const c = db.catalog.find(x=>x.id==id);
-            document.getElementById('c_id').value = c.id;
-            document.getElementById('c_name').value = c.name;
-            document.getElementById('c_vendor').value = c.vendor;
-            document.getElementById('c_cost').value = c.cost;
-            document.getElementById('c_unit').value = c.unit;
-        } else {
-            document.getElementById('c_id').value = "NEW";
-            document.getElementById('c_name').value = "";
-        }
+    function updateCalendar() {
+        const events = db.jobs.filter(j => j.start && j.status !== 'Done').map(j => ({
+            title: j.name,
+            start: j.start,
+            end: j.end,
+            backgroundColor: j.status === 'Scheduled' ? '#f97316' : '#7e22ce',
+            borderColor: 'transparent'
+        }));
+        calendar.removeAllEvents();
+        calendar.addEventSource(events);
     }
 
-    function saveCatalog() {
-        const id = document.getElementById('c_id').value;
-        const name = document.getElementById('c_name').value;
-        const vendor = document.getElementById('c_vendor').value;
-        const cost = Number(document.getElementById('c_cost').value);
-        const unit = document.getElementById('c_unit').value;
+    // --- 5. JOBS & COSTING LOGIC ---
+    function renderJobs(filter="") {
+        const list = document.getElementById('jobList'); list.innerHTML="";
+        
+        db.jobs.filter(j=>j.name.toLowerCase().includes(filter.toLowerCase())).forEach(j => {
+            const fName = db.team.find(t=>t.id==j.foremanId)?.name || "Unassigned";
+            
+            // COST CALCULATION LINKED TO PRICE BOOK
+            const matCost = j.materials ? j.materials.reduce((sum, m) => sum + m.total, 0) : 0;
+            const profit = (j.value || 0) - matCost;
 
-        if(id === "NEW") {
-            db.catalog.push({id:Date.now(), name, vendor, cost, unit});
-        } else {
-            const c = db.catalog.find(x=>x.id==id);
-            c.name = name; c.vendor = vendor; c.cost = cost; c.unit = unit;
-        }
-        saveToCloud(); closeModals(); notify("Price Book Updated");
+            list.innerHTML += `
+                <div class="list-card">
+                    <div style="flex:1">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span class="badge badge-${j.status}">${j.status}</span>
+                            <strong>${j.name}</strong>
+                        </div>
+                        <div style="font-size:0.85rem; color:#64748b; margin-top:4px;">
+                            <i class="fas fa-user"></i> ${fName} &bull; 
+                            <i class="fas fa-clock"></i> ${j.start ? new Date(j.start).toLocaleDateString() : 'Not Scheduled'}
+                        </div>
+                    </div>
+                    <div style="text-align:right; margin-right: 24px;">
+                        <div style="font-weight:700; color:var(--primary)">$${j.value.toLocaleString()}</div>
+                        <div style="font-size:0.8rem; color:var(--danger)">Cost: $${matCost.toLocaleString()}</div>
+                        <div style="font-size:0.8rem; color:var(--success)">Profit: $${profit.toLocaleString()}</div>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-outline btn-sm" onclick="openMatModal(${j.id})"><i class="fas fa-box-open"></i> Materials</button>
+                        <button class="btn btn-outline btn-sm" onclick="openJobModal(${j.id})"><i class="fas fa-pen"></i></button>
+                        <button class="btn btn-danger btn-sm" onclick="delJob(${j.id})"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>`;
+        });
     }
 
+    function openMatModal(jid) {
+        document.getElementById('modalMat').style.display='flex';
+        document.getElementById('m_jid').value = jid;
+        const s = document.getElementById('m_item'); s.innerHTML="";
+        db.catalog.forEach(c => s.innerHTML += `<option value="${c.id}">${c.name} ($${c.cost})</option>`);
+    }
+
+    function addMaterialToJob() {
+        const jid = document.getElementById('m_jid').value;
+        const cid = document.getElementById('m_item').value;
+        const qty = Number(document.getElementById('m_qty').value);
+
+        const job = db.jobs.find(j=>j.id==jid);
+        const item = db.catalog.find(c=>c.id==cid);
+
+        if(!job.materials) job.materials = [];
+        
+        job.materials.push({
+            name: item.name,
+            cost: item.cost,
+            qty: qty,
+            total: item.cost * qty
+        });
+
+        saveData();
+        closeModals();
+        alert(`Added ${qty} ${item.name} to job.`);
+    }
+
+    function saveJob() {
+        const id = document.getElementById('j_id').value;
+        const name = document.getElementById('j_name').value;
+        const val = Number(document.getElementById('j_val').value);
+        const status = document.getElementById('j_status').value;
+        const start = document.getElementById('j_start').value;
+        const end = document.getElementById('j_end').value;
+        const fid = document.getElementById('j_foreman').value;
+
+        const obj = { 
+            id: id=="NEW"?Date.now():Number(id), 
+            name, value:val, status, start, end, foremanId:fid,
+            materials: (id!="NEW"?db.jobs.find(x=>x.id==id).materials:[])
+        };
+
+        if(id=="NEW") db.jobs.push(obj);
+        else db.jobs[db.jobs.findIndex(x=>x.id==id)] = obj;
+        
+        saveData(); closeModals();
+    }
+
+    // --- 6. HELPERS ---
     function renderCatalog(f="") {
         const l=document.getElementById('catalogList'); l.innerHTML="";
-        db.catalog.filter(c=>c.name.toLowerCase().includes(f.toLowerCase())).forEach(c => {
-            l.innerHTML += `
-                <div class="list-item">
-                    <div><strong>${c.name}</strong><br><small>${c.vendor}</small></div>
-                    <div>$${c.cost}/${c.unit}</div>
-                    <div>
-                        <button class="btn btn-outline btn-sm" onclick="openCatalogModal(${c.id})"><i class="fas fa-pen"></i></button>
-                        <button class="btn btn-danger btn-sm" onclick="delCatalog(${c.id})"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>`;
+        db.catalog.filter(c=>c.name.toLowerCase().includes(f)).forEach(c => {
+            l.innerHTML += `<div class="list-card"><div><strong>${c.name}</strong><br><small>${c.vendor}</small></div><div style="font-weight:bold">$${c.cost}</div><div><button class="btn btn-outline btn-sm" onclick="openCatalogModal(${c.id})">Edit</button></div></div>`;
         });
     }
-
-    // --- 5. EDITABLE CREW (TEAM) ---
-    function openTeamModal(id = null) {
-        document.getElementById('modalTeam').style.display='flex';
-        if(id) {
-            const t = db.team.find(x=>x.id==id);
-            document.getElementById('t_id').value = t.id;
-            document.getElementById('t_name').value = t.name;
-            document.getElementById('t_role').value = t.role;
-        } else {
-            document.getElementById('t_id').value = "NEW";
-            document.getElementById('t_name').value = "";
-        }
-    }
-
-    function saveTeam() {
-        const id = document.getElementById('t_id').value;
-        const name = document.getElementById('t_name').value;
-        const role = document.getElementById('t_role').value;
-
-        if(id === "NEW") {
-            db.team.push({id:Date.now(), name, role});
-        } else {
-            const t = db.team.find(x=>x.id==id);
-            t.name = name; t.role = role;
-        }
-        saveToCloud(); closeModals(); notify("Crew Updated");
-    }
-
-    function renderTeam(f="") {
+    function renderTeam() {
         const l=document.getElementById('teamList'); l.innerHTML="";
-        db.team.filter(t=>t.name.toLowerCase().includes(f.toLowerCase())).forEach(t => {
-            l.innerHTML += `
-                <div class="list-item">
-                    <div><strong>${t.name}</strong><br><small>${t.role}</small></div>
-                    <div>
-                        <button class="btn btn-outline btn-sm" onclick="openTeamModal(${t.id})"><i class="fas fa-pen"></i></button>
-                        <button class="btn btn-danger btn-sm" onclick="delTeam(${t.id})"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>`;
-        });
+        db.team.forEach(t => { l.innerHTML += `<div class="list-card"><div><strong>${t.name}</strong><br><small>${t.role}</small></div><button class="btn btn-outline btn-sm" onclick="openTeamModal(${t.id})">Edit</button></div>`; });
     }
+    function renderDashboard() {
+        const rev = db.jobs.reduce((a,b)=>a+(b.value||0),0);
+        const cost = db.jobs.reduce((a,b)=>a+(b.materials?b.materials.reduce((x,y)=>x+y.total,0):0),0);
+        document.getElementById('kpi-rev').innerText="$"+rev.toLocaleString();
+        document.getElementById('kpi-cost').innerText="$"+cost.toLocaleString();
+        document.getElementById('kpi-profit').innerText="$"+(rev-cost).toLocaleString();
+        document.getElementById('kpi-margin').innerText = rev>0? Math.round(((rev-cost)/rev)*100)+"%" : "0%";
 
-    // --- 6. PROJECTS & CORE ---
-    function saveProject() {
-        const id = document.getElementById('p_id').value;
-        const name = document.getElementById('p_name').value;
-        const val = Number(document.getElementById('p_val').value);
-        const status = document.getElementById('p_status').value;
-        const fid = document.getElementById('p_foreman').value;
-        const start = document.getElementById('p_start').value;
-        const end = document.getElementById('p_end').value;
-        const addr = document.getElementById('p_address').value;
-
-        // Conflict Check
-        if(fid && start && end && (status=='Scheduled'||status=='InProgress')) {
-            const conflict = db.projects.find(p => p.id!=id && p.foremanId==fid && (p.status=='Scheduled'||p.status=='InProgress') && new Date(start)<=new Date(p.end) && new Date(end)>=new Date(p.start));
-            if(conflict) return notify(`Conflict: Foreman busy on ${conflict.name}`, "error");
-        }
-
-        const obj = { id: id=="NEW"?Date.now():Number(id), name, value:val, status, foremanId:fid, start, end, address:addr, expenses: (id!="NEW"?db.projects.find(x=>x.id==id).expenses:[]) };
-        
-        if(id=="NEW") db.projects.push(obj);
-        else db.projects[db.projects.findIndex(x=>x.id==id)] = obj;
-        
-        saveToCloud(); closeModals(); notify("Job Saved");
-    }
-
-    function renderProjects(f="") {
-        const l = document.getElementById('projectList'); l.innerHTML="";
-        db.projects.filter(p=>p.name.toLowerCase().includes(f.toLowerCase())).forEach(p => {
-            const fName = db.team.find(t=>t.id==p.foremanId)?.name || "Unassigned";
-            l.innerHTML += `
-                <div class="list-item">
-                    <div style="flex:1"><span class="badge badge-${p.status}">${p.status}</span><div style="font-weight:bold;margin-top:5px;">${p.name}</div><small>${fName}</small></div>
-                    <div style="margin:0 20px; font-weight:bold; color:var(--primary)">$${p.value.toLocaleString()}</div>
-                    <div><button class="btn btn-outline btn-sm" onclick="openProjectModal(${p.id})"><i class="fas fa-pen"></i></button> <button class="btn btn-danger btn-sm" onclick="delProject(${p.id})"><i class="fas fa-trash"></i></button></div>
-                </div>`;
-        });
-    }
-
-    // --- UTILS ---
-    function saveToCloud() { 
-        database.ref('projects').set(arrObj(db.projects)); 
-        database.ref('catalog').set(arrObj(db.catalog)); 
-        database.ref('team').set(arrObj(db.team)); 
-    }
-    function arrObj(arr) { const o={}; arr.forEach(x=>o[x.id]=x); return o; }
-    function notify(m,t="success") { const d=document.createElement('div'); d.className=`toast ${t}`; d.innerText=m; document.getElementById('toast-container').appendChild(d); setTimeout(()=>d.remove(),3000); }
-    function nav(v,e) { document.querySelectorAll('.view-section').forEach(x=>x.classList.remove('active')); document.getElementById('view-'+v).classList.add('active'); document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); e.classList.add('active'); if(v=='calendar') setTimeout(()=>calendar.render(),200); }
-    function closeModals() { document.querySelectorAll('.modal-overlay').forEach(e=>e.style.display='none'); }
-    function openProjectModal(id=null) { document.getElementById('modalProject').style.display='flex'; const s=document.getElementById('p_foreman'); s.innerHTML='<option value="">--</option>'; db.team.forEach(t=>s.innerHTML+=`<option value="${t.id}">${t.name}</option>`); if(id){const p=db.projects.find(x=>x.id==id); document.getElementById('p_id').value=p.id; document.getElementById('p_name').value=p.name; document.getElementById('p_val').value=p.value; document.getElementById('p_status').value=p.status; document.getElementById('p_foreman').value=p.foremanId; document.getElementById('p_start').value=p.start; document.getElementById('p_end').value=p.end; document.getElementById('p_address').value=p.address;}else{document.getElementById('p_id').value="NEW";} }
-    function openMap() { window.open(`https://maps.google.com/?q=${document.getElementById('p_address').value}`, '_blank'); }
-    
-    function delProject(id){if(confirm("Delete?")){db.projects=db.projects.filter(x=>x.id!=id); saveToCloud();}}
-    function delCatalog(id){if(confirm("Delete?")){db.catalog=db.catalog.filter(x=>x.id!=id); saveToCloud();}}
-    function delTeam(id){if(confirm("Delete?")){db.team=db.team.filter(x=>x.id!=id); saveToCloud();}}
-    function handleCSV(input) { const f=input.files[0]; if(!f)return; const r=new FileReader(); r.onload=e=>{ e.target.result.split('\n').slice(1).forEach((row,i)=>{if(row.trim()){const c=row.split(','); db.projects.push({id:Date.now()+i, name:c[1]||"Lead", value:0, status:'Lead', expenses:[]});}}); saveToCloud(); notify("Imported"); input.value=""; }; r.readAsText(f); }
-    
-    function renderDashboard() { 
-        const rev=db.projects.reduce((a,b)=>a+(b.value||0),0); document.getElementById('kpi-rev').innerText="$"+rev.toLocaleString();
-        document.getElementById('kpi-scheduled').innerText=db.projects.filter(p=>p.status=='Scheduled').length;
-        document.getElementById('kpi-done').innerText=db.projects.filter(p=>p.status=='Done').length;
         if(chart) chart.destroy();
-        chart = new Chart(document.getElementById('finChart'), {type:'bar', data:{labels:['Revenue'], datasets:[{label:'Rev', data:[rev], backgroundColor:'#2563eb'}]}, options:{maintainAspectRatio:false}});
+        chart = new Chart(document.getElementById('finChart'), { type:'bar', data:{labels:['Financials'], datasets:[{label:'Revenue', data:[rev], backgroundColor:'#2563eb'}, {label:'Profit', data:[rev-cost], backgroundColor:'#10b981'}]}, options:{maintainAspectRatio:false} });
     }
-    function updateCalendar() {
-        const evs = db.projects.filter(p=>p.start).map(p=>({title:p.name, start:p.start, end:p.end?new Date(new Date(p.end).getTime()+86400000).toISOString().slice(0,10):p.start, color:p.status=='Done'?'#10b981':(p.status=='InProgress'?'#7e22ce':'#f59e0b')}));
-        calendar.removeAllEvents(); calendar.addEventSource(evs);
-    }
+
+    function openJobModal(id=null) { document.getElementById('modalJob').style.display='flex'; const s=document.getElementById('j_foreman'); s.innerHTML='<option value="">--</option>'; db.team.forEach(t=>s.innerHTML+=`<option value="${t.id}">${t.name}</option>`); if(id){const j=db.jobs.find(x=>x.id==id); document.getElementById('j_id').value=j.id; document.getElementById('j_name').value=j.name; document.getElementById('j_val').value=j.value; document.getElementById('j_status').value=j.status; document.getElementById('j_start').value=j.start; document.getElementById('j_end').value=j.end; document.getElementById('j_foreman').value=j.foremanId;} else {document.getElementById('j_id').value="NEW";} }
+    function openCatalogModal(id=null) { document.getElementById('modalCat').style.display='flex'; if(id){const c=db.catalog.find(x=>x.id==id); document.getElementById('c_id').value=c.id; document.getElementById('c_name').value=c.name; document.getElementById('c_vendor').value=c.vendor; document.getElementById('c_cost').value=c.cost;} else {document.getElementById('c_id').value="NEW";} }
+    function saveCatalog(){ const id=document.getElementById('c_id').value; const name=document.getElementById('c_name').value; const vendor=document.getElementById('c_vendor').value; const cost=Number(document.getElementById('c_cost').value); if(id=="NEW") db.catalog.push({id:Date.now(),name,vendor,cost}); else {const c=db.catalog.find(x=>x.id==id);c.name=name;c.vendor=vendor;c.cost=cost;} saveData(); closeModals(); }
+    function openTeamModal(id=null) { document.getElementById('modalTeam').style.display='flex'; if(id){const t=db.team.find(x=>x.id==id); document.getElementById('t_id').value=t.id; document.getElementById('t_name').value=t.name; document.getElementById('t_role').value=t.role;} else {document.getElementById('t_id').value="NEW";} }
+    function saveTeam(){ const id=document.getElementById('t_id').value; const name=document.getElementById('t_name').value; const role=document.getElementById('t_role').value; if(id=="NEW") db.team.push({id:Date.now(),name,role}); else {const t=db.team.find(x=>x.id==id);t.name=name;t.role=role;} saveData(); closeModals(); }
+    
+    function saveData() { dbRef.ref().set(db); }
+    function refreshUI() { renderJobs(); renderCatalog(); renderTeam(); renderDashboard(); updateCalendar(); }
+    function nav(v,e) { document.querySelectorAll('.view-section').forEach(x=>x.classList.remove('active')); document.getElementById('view-'+v).classList.add('active'); document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); e.classList.add('active'); document.getElementById('page-header').innerText = e.innerText; if(v=='calendar') setTimeout(()=>calendar.render(),200); }
+    function closeModals() { document.querySelectorAll('.modal-overlay').forEach(e=>e.style.display='none'); }
+    function delJob(id){ if(confirm('Delete?')){ db.jobs=db.jobs.filter(x=>x.id!=id); saveData(); } }
 
 </script>
 </body>
