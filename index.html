@@ -561,7 +561,7 @@
     function renderCatalog() { 
         const l=document.getElementById('catalogList'); l.innerHTML=""; 
         if(!db.catalog || db.catalog.length===0) { l.innerHTML = '<div style="text-align:center; padding:40px; color:#94a3b8;">Price Book empty. Add items.</div>'; return; }
-        db.catalog.forEach(c=>l.innerHTML+=`<div class="list-card"><div><strong>${c.name}</strong><br><span style="font-size:0.8rem;">${c.vendor}</span></div><div><strong>$${c.cost}</strong></div><div style="display:flex; gap:5px;"><button class="btn btn-outline btn-sm" onclick="openCatalogModal(${c.id})">Edit</button><button class="btn btn-danger btn-sm" onclick="delCatalog(${c.id})"><i class="fas fa-trash"></i></button></div></div>`); 
+        db.catalog.forEach(c=>l.innerHTML+=`<div class="list-card"><div style="flex:1;"><strong>${c.name}</strong><br><span style="font-size:0.8rem; color:var(--text-light);">${c.vendor}</span></div><div style="text-align:right; margin:0 20px; min-width:100px;"><strong style="color:var(--primary); font-size:1.1rem;">$${safeNum(c.cost).toLocaleString()}</strong></div><div style="display:flex; gap:5px;"><button class="btn btn-outline btn-sm" onclick="openCatalogModal(${c.id})">Edit</button><button class="btn btn-danger btn-sm" onclick="delCatalog(${c.id})"><i class="fas fa-trash"></i></button></div></div>`); 
     }
     
     function renderTeam() { 
