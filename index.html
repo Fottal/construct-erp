@@ -75,10 +75,10 @@
         .user-btn:hover { background: var(--accent); border-color: var(--accent); color: white; }
 
         /* Main Body */
-        .main-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; width: 100%; }
+        .main-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; width: 100%; min-height: 0; }
         .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 30px; display: flex; justify-content: space-between; align-items: center; height: 70px; flex-shrink: 0; }
         .page-title { font-size: 1.25rem; font-weight: 800; color: var(--primary); }
-        .content { flex: 1; padding: 30px; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; }
+        .content { flex: 1; padding: 30px; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
 
         /* --- DASHBOARD --- */
         .section-header { font-size: 0.75rem; font-weight: 800; color: var(--text-light); text-transform: uppercase; margin-bottom: 15px; display: block; margin-top: 10px; }
@@ -137,7 +137,11 @@
             .sidebar { display: none !important; } 
             .bottom-nav { display: flex; }
             .header { padding: 0 20px; }
-            .content { padding: 20px; padding-bottom: 100px; }
+            .content { padding: 20px; padding-bottom: 0; min-height: 0; }
+            .view-section { min-height: auto; }
+            #view-crew { min-height: auto; padding-bottom: 0; }
+            #crewJobList { padding-bottom: 60px; margin-bottom: 0; }
+            .mobile-job-card:last-child { margin-bottom: 0; }
             .card-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
             .list-card { flex-direction: column; align-items: flex-start; gap: 15px; }
             .list-card > div { width: 100%; }
@@ -147,7 +151,7 @@
         }
 
         .mobile-only { display: none; }
-        .view-section { display: none; height: 100%; } .view-section.active { display: block; animation: fadeIn 0.3s; }
+        .view-section { display: none; } .view-section.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         #toast-container { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); z-index: 4000; width: 90%; max-width: 400px; }
         .toast { background: var(--primary); color: white; padding: 14px; border-radius: 8px; margin-top: 10px; font-weight: 500; box-shadow: 0 10px 20px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px;}
@@ -1084,7 +1088,7 @@
     function renderCrew() {
         const l = document.getElementById('crewJobList'); l.innerHTML="";
         const myJobs = db.jobs.filter(j => j.foremanId == currentUser.id && j.status !== 'Lead');
-        if(myJobs.length === 0) { l.innerHTML=`<div style="text-align:center; padding:40px; color:var(--text-light)">No active work.</div>`; return; }
+        if(myJobs.length === 0) { l.innerHTML=`<div style="text-align:center; padding:40px; color:var(--text-light)">No active work.</div><div style="height:120px;"></div>`; return; }
         myJobs.forEach(j => {
             const map = `https://maps.google.com/?q=${encodeURIComponent(j.address||'')}`;
             const start = j.start ? new Date(j.start).toLocaleDateString() + ' ' + new Date(j.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'TBD';
@@ -1134,6 +1138,8 @@
                 </div>
             `;
         });
+        // Add bottom spacer for mobile to ensure last item is reachable
+        l.innerHTML += '<div style="height:50px; width:100%;"></div>';
     }
     
     function toggleTask(jobId, taskIndex) {
