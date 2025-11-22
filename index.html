@@ -553,16 +553,46 @@
             }
         };
         
-        // Save to Firebase (public write - no auth required for database)
-        dbRef.ref('jobs').child(jobData.id).set(jobData)
-            .then(() => {
-                alert('Thank you! Your consultation request has been submitted. We will contact you soon.');
-                hideConsultation();
-            })
-            .catch(error => {
-                console.error('Error submitting consultation:', error);
-                alert('There was an error submitting your request. Please try again.');
-            });
+        // Try to save directly - requires Firebase rules to allow unauthenticated writes to 'consultations'
+        // If user is already authenticated, use that session
+        const currentUser = auth.currentUser;
+        
+        const saveConsultation = () => {
+            return dbRef.ref('consultations').child(jobData.id).set(jobData);
+        };
+        
+        const handleSuccess = () => {
+            alert('Thank you! Your consultation request has been submitted. We will contact you soon.');
+            hideConsultation();
+        };
+        
+        const handleError = (error) => {
+            console.error('Error submitting consultation:', error);
+            console.error('Error code:', error.code);
+            console.error('Error message:', error.message);
+            
+            // Check for permission denied
+            if (error.code === 'PERMISSION_DENIED' || error.message?.includes('Permission denied')) {
+                alert('Permission denied. Please make sure Firebase rules allow writes to the "consultations" path, or try logging in first.');
+            } else if (error.code === 'auth/admin-restricted-operation') {
+                alert('Anonymous authentication is restricted. Please enable it in Firebase Console or configure database rules to allow public writes to "consultations".');
+            } else {
+                alert('There was an error submitting your request: ' + (error.message || 'Unknown error'));
+            }
+        };
+        
+        if (currentUser && !currentUser.isAnonymous) {
+            // User is already logged in, save directly
+            saveConsultation()
+                .then(handleSuccess)
+                .catch(handleError);
+        } else {
+            // No authentication - try direct write (requires Firebase rules)
+            // This will work if you set Firebase rules to allow unauthenticated writes to 'consultations'
+            saveConsultation()
+                .then(handleSuccess)
+                .catch(handleError);
+        }
     }
 
     // --- INIT ---
@@ -581,6 +611,62 @@
 
             const profile = db.team.find(t => t.email && t.email.toLowerCase() === email.toLowerCase());
             currentUser = profile || { name: "Admin", role: "Admin", email: email, id: "ADMIN" };
+            
+            // Process pending consultations and convert to jobs (after currentUser is set)
+            // Read consultations separately since rules might restrict reading
+            if(currentUser && currentUser.role === 'Admin') {
+                dbRef.ref('consultations').once('value', (consultationsSnap) => {
+                    const consultations = consultationsSnap.val();
+                    if(consultations) {
+                        const consultationsList = Object.values(consultations);
+                        let hasNewConsultations = false;
+                        const jobsToAdd = [];
+                        consultationsList.forEach(consultation => {
+                            // Check if this consultation already exists as a job
+                            const exists = db.jobs.find(j => j.id === consultation.id);
+                            if(!exists) {
+                                // Add consultation as a Lead job
+                                db.jobs.push(consultation);
+                                jobsToAdd.push(consultation.id);
+                                hasNewConsultations = true;
+                            }
+                        });
+                        // Save updated jobs list if we added new consultations
+                        if(hasNewConsultations) {
+                            // Use the standard saveData function to ensure proper format
+                            const jobsObj = {};
+                            db.jobs.forEach(j => jobsObj[j.id] = j);
+                            const catalogObj = {};
+                            db.catalog.forEach(c => catalogObj[c.id] = c);
+                            const teamObj = {};
+                            db.team.forEach(t => teamObj[t.id] = t);
+                            
+                            dbRef.ref().set({
+                                jobs: jobsObj,
+                                catalog: catalogObj,
+                                team: teamObj
+                            }).then(() => {
+                                // Remove consultations from queue after successful save
+                                jobsToAdd.forEach(consultationId => {
+                                    dbRef.ref('consultations').child(consultationId).remove();
+                                });
+                                // Refresh views
+                                if(document.getElementById('view-jobs').classList.contains('active')) {
+                                    renderJobs();
+                                }
+                                if(document.getElementById('view-dashboard').classList.contains('active')) {
+                                    renderDashboard();
+                                }
+                                notify('Consultations converted to Lead jobs');
+                            }).catch(error => {
+                                alert('Error saving consultations as jobs: ' + error.message);
+                            });
+                        }
+                    }
+                }).catch(error => {
+                    alert('Error reading consultations. Make sure Firebase rules allow authenticated users to read consultations.');
+                });
+            }
 
             if (currentUser.role === 'Admin') {
                 document.querySelector('.sidebar').style.display = 'flex';
@@ -592,6 +678,32 @@
                 if(headerLogoutBtn) headerLogoutBtn.style.display = 'none';
                 const pageTitle = document.getElementById('page-title');
                 if(pageTitle) pageTitle.innerText = 'Dashboard';
+                
+                // Listen for new consultations in real-time
+                dbRef.ref('consultations').on('child_added', (snap) => {
+                    const consultation = snap.val();
+                    if(consultation) {
+                        const exists = db.jobs.find(j => j.id === consultation.id);
+                        if(!exists) {
+                            db.jobs.push(consultation);
+                            const jobsObj = {};
+                            db.jobs.forEach(j => jobsObj[j.id] = j);
+                            dbRef.ref('jobs').set(jobsObj).then(() => {
+                                dbRef.ref('consultations').child(consultation.id).remove();
+                                // Refresh the view if on jobs page
+                                if(document.getElementById('view-jobs').classList.contains('active')) {
+                                    renderJobs();
+                                }
+                                if(document.getElementById('view-dashboard').classList.contains('active')) {
+                                    renderDashboard();
+                                }
+                                notify('New consultation converted to Lead job');
+                            }).catch(error => {
+                                console.error('Error saving consultation as job:', error);
+                            });
+                        }
+                    }
+                });
                 
                 // Trigger render based on current active view
                 const currentView = document.querySelector('.view-section.active').id.replace('view-', '');
