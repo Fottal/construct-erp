@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ConstructAI - v11 Data Fix</title>
+    <title>ConstructAI - Fixed Charts</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -28,20 +28,15 @@
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100dvh; overflow: hidden; }
 
-        /* --- SCROLLBARS --- */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-
         /* --- AUTH SCREEN --- */
         #auth-screen { position: fixed; inset:0; background: var(--primary); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
         .login-card { background: white; padding: 40px; border-radius: 16px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
         .login-input { width: 100%; padding: 14px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; }
 
-        /* --- APP LAYOUT --- */
+        /* --- APP STRUCTURE --- */
         #app-container { display: none; width: 100%; height: 100%; }
         
-        /* Sidebar (Desktop) */
+        /* Sidebar */
         .sidebar { width: var(--sidebar-width); background: var(--primary); color: white; display: flex; flex-direction: column; flex-shrink: 0; height: 100%; z-index: 50; }
         .brand { padding: 24px; font-size: 1.2rem; font-weight: 800; border-bottom: 1px solid var(--primary-light); display: flex; align-items: center; gap: 10px; }
         .nav-menu { flex: 1; padding-top: 20px; overflow-y: auto; }
@@ -51,7 +46,7 @@
         
         .user-panel { padding: 20px; border-top: 1px solid var(--primary-light); background: rgba(0,0,0,0.2); }
         .user-btn { background: var(--primary-light); border: 1px solid #475569; color: #cbd5e1; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; flex: 1; display: flex; justify-content: center; align-items: center; gap: 5px; }
-        .user-btn:hover { background: var(--accent); border-color: var(--accent); color: white; }
+        .user-btn:hover { background: var(--accent); color: white; }
 
         /* Main Content */
         .main-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; width: 100%; }
@@ -65,7 +60,9 @@
         .stat-card { background: var(--surface); padding: 24px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .stat-val { font-size: 1.8rem; font-weight: 800; color: var(--primary); margin: 8px 0; }
         .stat-lbl { font-size: 0.75rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; }
-        .chart-box { background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border); height: 350px; }
+        
+        /* Chart Container Fix */
+        .chart-wrapper { background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border); height: 350px; position: relative; }
 
         /* --- LISTS --- */
         .list-stack { display: flex; flex-direction: column; gap: 12px; }
@@ -86,7 +83,7 @@
         .btn-danger { background: #fee2e2; color: var(--danger); }
         .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
         
-        /* --- MOBILE NAV (HIDDEN ON DESKTOP) --- */
+        /* --- MOBILE NAV --- */
         .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-height); background: var(--surface); border-top: 1px solid var(--border); z-index: 1000; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); }
         .b-item { color: var(--text-light); display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; gap: 4px; flex: 1; height: 100%; justify-content: center; }
         .b-item.active { color: var(--accent); font-weight: 700; }
@@ -130,8 +127,6 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         #toast-container { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); z-index: 4000; width: 90%; max-width: 400px; }
         .toast { background: var(--primary); color: white; padding: 14px; border-radius: 8px; margin-top: 10px; font-weight: 500; box-shadow: 0 10px 20px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px;}
-        
-        .empty-state { text-align: center; color: var(--text-light); padding: 40px; border: 2px dashed var(--border); border-radius: 12px; }
     </style>
 </head>
 <body>
@@ -140,7 +135,7 @@
     <div class="login-card">
         <h1 style="color:var(--accent); margin-bottom:5px; font-size: 3rem;"><i class="fas fa-layer-group"></i></h1>
         <h2 style="margin-top:0; color:var(--text);">ConstructAI</h2>
-        <p style="color:var(--text-light); margin-bottom:30px; font-size: 0.9rem;">Enterprise v9.0</p>
+        <p style="color:var(--text-light); margin-bottom:30px; font-size: 0.9rem;">v9.1 Final</p>
         <input type="email" id="email" class="login-input" placeholder="Email">
         <input type="password" id="password" class="login-input" placeholder="Password">
         <button class="btn btn-primary" style="width:100%; padding: 14px;" onclick="authLogin()">Sign In</button>
@@ -197,10 +192,10 @@
                 </div>
 
                 <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
-                    <div style="background:white; padding:20px; border-radius:12px; border:1px solid var(--border); height:300px;">
+                    <div class="chart-wrapper">
                         <canvas id="finChart"></canvas>
                     </div>
-                    <div style="background:white; padding:20px; border-radius:12px; border:1px solid var(--border); height:300px;">
+                    <div class="chart-wrapper">
                         <canvas id="funnelChart"></canvas>
                     </div>
                 </div>
@@ -237,7 +232,6 @@
                 <div class="crew-welcome-card">
                     <div style="opacity:0.8; font-size:0.85rem; font-weight:600;">FIELD OPERATIONS</div>
                     <div style="font-size:1.75rem; font-weight:800;">Hi, <span id="crew-dash-name">Crew</span></div>
-                    <div style="margin-top:10px; font-size:0.9rem;">Assignments updated.</div>
                 </div>
                 <div id="crewJobList"></div>
             </div>
@@ -317,13 +311,13 @@
 <script>
     // --- CONFIG ---
     const firebaseConfig = {
-      apiKey: "AIzaSyA2HNjITt0civU2SJ4I40XxdnWxryQRDO4",
-      authDomain: "construct-erp.firebaseapp.com",
-      databaseURL: "https://construct-erp-default-rtdb.firebaseio.com",
-      projectId: "construct-erp",
-      storageBucket: "construct-erp.firebasestorage.app",
-      messagingSenderId: "737357744238",
-      appId: "1:737357744238:web:0942d58665f1709278be7f"
+          apiKey: "AIzaSyA2HNjITt0civU2SJ4I40XxdnWxryQRDO4",
+          authDomain: "construct-erp.firebaseapp.com",
+          databaseURL: "https://construct-erp-default-rtdb.firebaseio.com",
+          projectId: "construct-erp",
+          storageBucket: "construct-erp.firebasestorage.app",
+          messagingSenderId: "737357744238",
+          appId: "1:737357744238:web:0942d58665f1709278be7f"
     };
 
     try { firebase.initializeApp(firebaseConfig); } catch(e){console.error("Firebase Error:", e);}
@@ -369,7 +363,7 @@
                 document.getElementById('nav-crew-mobile').style.display = 'none';
                 document.getElementById('adm-name').innerText = currentUser.name;
                 
-                // Render current view to ensure data refresh
+                // Trigger render based on current active view
                 const currentView = document.querySelector('.view-section.active').id.replace('view-', '');
                 nav(currentView);
             } else {
@@ -395,7 +389,7 @@
 
     // --- ADMIN RENDER ---
     function renderAdmin() {
-        // Refresh Current View Logic handled by Nav
+        // Logic is now handled in nav() to prevent overwriting the UI
     }
 
     function renderDashboard() {
@@ -432,7 +426,7 @@
         const l = document.getElementById('jobList'); l.innerHTML="";
         // Safe filter
         const jobs = db.jobs || [];
-        if(jobs.length === 0) { l.innerHTML = '<div class="empty-state">No jobs found. Create one.</div>'; return; }
+        if(jobs.length === 0) { l.innerHTML = '<div class="empty-state" style="text-align:center; padding:40px; color:#94a3b8;">No jobs found. Create one.</div>'; return; }
 
         jobs.filter(j => (j.name || "").toLowerCase().includes(f.toLowerCase())).forEach(j => {
             const fName = db.team.find(t => t.id == j.foremanId)?.name || "Unassigned";
@@ -444,13 +438,13 @@
     
     function renderCatalog() { 
         const l=document.getElementById('catalogList'); l.innerHTML=""; 
-        if(!db.catalog || db.catalog.length===0) { l.innerHTML = '<div class="empty-state">Price Book empty. Add items.</div>'; return; }
+        if(!db.catalog || db.catalog.length===0) { l.innerHTML = '<div style="text-align:center; padding:40px; color:#94a3b8;">Price Book empty. Add items.</div>'; return; }
         db.catalog.forEach(c=>l.innerHTML+=`<div class="list-card"><div><strong>${c.name}</strong><br><span style="font-size:0.8rem;">${c.vendor}</span></div><div><strong>$${c.cost}</strong></div><div style="display:flex; gap:5px;"><button class="btn btn-outline btn-sm" onclick="openCatalogModal(${c.id})">Edit</button><button class="btn btn-danger btn-sm" onclick="delCatalog(${c.id})"><i class="fas fa-trash"></i></button></div></div>`); 
     }
     
     function renderTeam() { 
         const l=document.getElementById('teamList'); l.innerHTML=""; 
-        if(!db.team || db.team.length===0) { l.innerHTML = '<div class="empty-state">No crew. Add members.</div>'; return; }
+        if(!db.team || db.team.length===0) { l.innerHTML = '<div style="text-align:center; padding:40px; color:#94a3b8;">No crew. Add members.</div>'; return; }
         db.team.forEach(t=>l.innerHTML+=`<div class="list-card"><div><strong>${t.name}</strong><br><span style="font-size:0.8rem; color:var(--text-light)">${t.role} ($${t.rate||0}/hr)</span></div><div style="display:flex; gap:5px;"><button class="btn btn-outline btn-sm" onclick="openTeamModal(${t.id})">Edit</button><button class="btn btn-danger btn-sm" onclick="delTeam(${t.id})"><i class="fas fa-user-times"></i></button></div></div>`); 
     }
     
@@ -507,29 +501,16 @@
         document.getElementById('view-'+v).classList.add('active'); 
         document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); 
         if(e)e.classList.add('active'); 
-        
-        // TRIGGER RENDERERS MANUALLY ON NAV
-        if(v==='dashboard') renderDashboard();
-        if(v==='jobs') renderJobs();
-        if(v==='team') renderTeam();
-        if(v==='catalog') renderCatalog();
-        if(v==='calendar') {
-            setTimeout(()=>{
-                if(!calendar) {
-                    calendar=new FullCalendar.Calendar(document.getElementById('calendar'),{initialView:'dayGridMonth',events:db.jobs.filter(j=>j.start).map(j=>({title:j.name,start:j.start,end:j.end,color:j.status=='Scheduled'?'var(--warning)':(j.status=='InProgress'?'#7e22ce':(j.status=='Done'?'var(--success)':'#cbd5e1'))})),eventClick:i=>openJobModal(Number(i.event.extendedProps.publicId))});
-                    calendar.render();
-                } else {
-                    // Update events
-                    calendar.removeAllEvents();
-                    calendar.addEventSource(db.jobs.filter(j=>j.start).map(j=>({title:j.name,start:j.start,end:j.end,color:j.status=='Scheduled'?'var(--warning)':(j.status=='InProgress'?'#7e22ce':(j.status=='Done'?'var(--success)':'#cbd5e1'))})));
-                    calendar.render(); 
-                }
-            },200);
-        }
+        if(v=='dashboard') renderDashboard();
+        if(v=='jobs') renderJobs();
+        if(v=='team') renderTeam();
+        if(v=='catalog') renderCatalog();
+        if(v=='calendar') setTimeout(()=>initCalendar(),200); 
     }
+
     function closeModals(){document.querySelectorAll('.modal-overlay').forEach(e=>e.style.display='none');}
     function notify(m){const d=document.createElement('div');d.className='toast';d.innerHTML=`<i class="fas fa-check-circle"></i> ${m}`;document.getElementById('toast-container').appendChild(d);setTimeout(()=>d.remove(),3000);}
-    function saveData(){dbRef.ref().set(arrToObj(db)); if(currentUser.role==='Admin') renderAdmin(); else renderCrew(); notify("Saved");}
+    function saveData(){dbRef.ref().set(arrToObj(db)); if(currentUser.role==='Admin') { renderDashboard(); renderJobs(); } else renderCrew(); notify("Saved");}
     function arrToObj(d){return {jobs:arrObj(d.jobs), catalog:arrObj(d.catalog), team:arrObj(d.team)};}
     function arrObj(a){const o={}; a.forEach(x=>o[x.id]=x); return o;}
     function setStatus(jid, s) { const j=db.jobs.find(x=>x.id==jid); if(j){j.status=s; saveData();} }
