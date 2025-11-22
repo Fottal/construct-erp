@@ -172,7 +172,10 @@
     <div class="main-body">
         <div class="header">
             <div class="page-title" id="page-title">Dashboard</div>
-            <div style="color: var(--success); font-size: 0.8rem; font-weight: 600;"><i class="fas fa-wifi"></i> Live</div>
+            <div style="display:flex; align-items:center; gap:15px;">
+                <div style="color: var(--success); font-size: 0.8rem; font-weight: 600;"><i class="fas fa-wifi"></i> Live</div>
+                <button class="btn btn-outline btn-sm" id="header-logout-btn" style="display:none;" onclick="authLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
         </div>
 
         <div class="content">
@@ -369,6 +372,10 @@
                 document.getElementById('nav-crew-mobile').style.display = 'none';
                 const admName = document.getElementById('adm-name');
                 if(admName) admName.innerText = currentUser.name;
+                const headerLogoutBtn = document.getElementById('header-logout-btn');
+                if(headerLogoutBtn) headerLogoutBtn.style.display = 'none';
+                const pageTitle = document.getElementById('page-title');
+                if(pageTitle) pageTitle.innerText = 'Dashboard';
                 
                 // Trigger render based on current active view
                 const currentView = document.querySelector('.view-section.active').id.replace('view-', '');
@@ -379,6 +386,10 @@
                 document.getElementById('nav-crew-mobile').style.display = 'flex';
                 const crewDashName = document.getElementById('crew-dash-name');
                 if(crewDashName) crewDashName.innerText = currentUser.name.split(' ')[0];
+                const headerLogoutBtn = document.getElementById('header-logout-btn');
+                if(headerLogoutBtn) headerLogoutBtn.style.display = 'flex';
+                const pageTitle = document.getElementById('page-title');
+                if(pageTitle) pageTitle.innerText = 'Field Operations';
                 nav('crew');
                 renderCrew();
             }
@@ -565,9 +576,61 @@
         if(myJobs.length === 0) { l.innerHTML=`<div style="text-align:center; padding:40px; color:var(--text-light)">No active work.</div>`; return; }
         myJobs.forEach(j => {
             const map = `https://maps.google.com/?q=${encodeURIComponent(j.address||'')}`;
-            const start = j.start ? new Date(j.start).toLocaleDateString() : 'TBD';
-            l.innerHTML += `<div class="job-card-mobile status-${j.status}"><div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span class="badge badge-${j.status}">${j.status}</span></div><h3 style="margin:0;">${j.name}</h3><p style="color:var(--text-light); font-size:0.9rem; margin-top:5px;">${j.address || 'No Address'}</p><div style="background:#f8fafc; padding:10px; border-radius:8px; margin:15px 0; font-size:0.85rem;"><strong>Start:</strong> ${start}</div><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><a href="${map}" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none; text-align:center;">Map</a>${j.status !== 'Done' ? (j.status === 'Scheduled' ? `<button class="btn btn-primary btn-sm" onclick="setStatus(${j.id}, 'InProgress')">Start</button>` : `<button class="btn btn-success btn-sm" onclick="setStatus(${j.id}, 'Done')">Complete</button>`) : ''}</div></div>`;
+            const start = j.start ? new Date(j.start).toLocaleDateString() + ' ' + new Date(j.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'TBD';
+            const end = j.end ? new Date(j.end).toLocaleDateString() + ' ' + new Date(j.end).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'TBD';
+            const tasks = j.tasks || [];
+            const tasksCompleted = tasks.filter(t => t.done).length;
+            const tasksTotal = tasks.length;
+            const tasksHtml = tasks.length > 0 ? `
+                <div style="background:white; padding:15px; border-radius:8px; margin:15px 0; border:1px solid var(--border);">
+                    <div style="font-weight:700; margin-bottom:10px; font-size:0.9rem;">Tasks (${tasksCompleted}/${tasksTotal})</div>
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        ${tasks.map((task, idx) => `
+                            <label style="display:flex; align-items:center; gap:10px; cursor:pointer; padding:8px; border-radius:6px; transition:0.2s; ${task.done ? 'opacity:0.6;' : ''}">
+                                <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${j.id}, ${idx})" style="width:18px; height:18px; cursor:pointer;">
+                                <span style="flex:1; ${task.done ? 'text-decoration:line-through;' : ''}">${task.desc || 'Untitled Task'}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : '<div style="background:#f8fafc; padding:10px; border-radius:8px; margin:15px 0; font-size:0.85rem; color:var(--text-light);">No tasks assigned</div>';
+            
+            let statusButton = '';
+            if(j.status === 'Scheduled') {
+                statusButton = `<button class="btn btn-primary btn-sm" onclick="setStatus(${j.id}, 'InProgress')">Start</button>`;
+            } else if(j.status === 'InProgress') {
+                statusButton = `<button class="btn btn-success btn-sm" onclick="setStatus(${j.id}, 'Done')">Complete</button>`;
+            } else if(j.status === 'Done') {
+                statusButton = `<button class="btn btn-outline btn-sm" onclick="setStatus(${j.id}, 'InProgress')">Reopen</button>`;
+            }
+            
+            l.innerHTML += `
+                <div class="mobile-job-card">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;">
+                        <span class="badge badge-${j.status}">${j.status}</span>
+                    </div>
+                    <h3 style="margin:0; font-size:1.2rem;">${j.name}</h3>
+                    <p style="color:var(--text-light); font-size:0.9rem; margin-top:5px;">${j.address || 'No Address'}</p>
+                    <div style="background:#f8fafc; padding:12px; border-radius:8px; margin:15px 0; font-size:0.85rem; border:1px solid var(--border);">
+                        <div style="margin-bottom:8px;"><strong>Start:</strong> ${start}</div>
+                        <div><strong>End:</strong> ${end}</div>
+                    </div>
+                    ${tasksHtml}
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:15px;">
+                        <a href="${map}" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none; text-align:center; display:flex; align-items:center; justify-content:center; gap:5px;"><i class="fas fa-map-marker-alt"></i> Map</a>
+                        ${statusButton}
+                    </div>
+                </div>
+            `;
         });
+    }
+    
+    function toggleTask(jobId, taskIndex) {
+        const j = db.jobs.find(x => x.id == jobId);
+        if(j && j.tasks && j.tasks[taskIndex]) {
+            j.tasks[taskIndex].done = !j.tasks[taskIndex].done;
+            saveData();
+        }
     }
 
     // --- COSTING LOGIC ---
@@ -637,11 +700,25 @@
         document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); 
         if(e)e.classList.add('active'); 
         
+        const pageTitle = document.getElementById('page-title');
+        if(pageTitle) {
+            const titles = {
+                'dashboard': 'Dashboard',
+                'jobs': 'Job Ledger',
+                'team': 'Workforce',
+                'catalog': 'Price Book',
+                'calendar': 'Schedule',
+                'crew': 'Field Operations'
+            };
+            pageTitle.innerText = titles[v] || 'Dashboard';
+        }
+        
         if(v=='dashboard') renderDashboard();
         if(v=='jobs') renderJobs();
         if(v=='team') renderTeam();
         if(v=='catalog') renderCatalog();
-        if(v=='calendar') setTimeout(()=>initCalendar(),200); 
+        if(v=='calendar') setTimeout(()=>initCalendar(),200);
+        if(v=='crew') renderCrew();
     }
 
     function closeModals(){document.querySelectorAll('.modal-overlay').forEach(e=>e.style.display='none');}
