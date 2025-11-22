@@ -198,9 +198,9 @@
                     <div class="chart-box"><canvas id="finChart"></canvas></div>
                     <div class="chart-box"><canvas id="funnelChart"></canvas></div>
                 </div> -->
-                <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px; height:350px;">
-                    <div style="background:white; padding:15px; border:1px solid var(--border); border-radius:8px;"><canvas id="finChart"></canvas></div>
-                    <div style="background:white; padding:15px; border:1px solid var(--border); border-radius:8px;"><canvas id="funnelChart"></canvas></div>
+                <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
+                    <div style="background:white; padding:15px; border:1px solid var(--border); border-radius:8px; height:350px; position:relative; overflow:hidden;"><canvas id="finChart" style="max-width:100%; max-height:100%;"></canvas></div>
+                    <div style="background:white; padding:15px; border:1px solid var(--border); border-radius:8px; height:350px; position:relative; overflow:hidden;"><canvas id="funnelChart" style="max-width:100%; max-height:100%;"></canvas></div>
                 </div>
             </div>
 
@@ -367,7 +367,8 @@
                 document.querySelector('.sidebar').style.display = 'flex';
                 document.getElementById('nav-admin-mobile').style.display = 'flex';
                 document.getElementById('nav-crew-mobile').style.display = 'none';
-                document.getElementById('adm-name').innerText = currentUser.name;
+                const admName = document.getElementById('adm-name');
+                if(admName) admName.innerText = currentUser.name;
                 
                 // Trigger render based on current active view
                 const currentView = document.querySelector('.view-section.active').id.replace('view-', '');
@@ -376,7 +377,8 @@
                 document.querySelector('.sidebar').style.display = 'none';
                 document.getElementById('nav-admin-mobile').style.display = 'none';
                 document.getElementById('nav-crew-mobile').style.display = 'flex';
-                document.getElementById('crew-dash-name').innerText = currentUser.name.split(' ')[0];
+                const crewDashName = document.getElementById('crew-dash-name');
+                if(crewDashName) crewDashName.innerText = currentUser.name.split(' ')[0];
                 nav('crew');
                 renderCrew();
             }
@@ -415,32 +417,121 @@
         const gMargin = gRev > 0 ? Math.round((gProfit/gRev)*100) : 0;
         const avg = allReal.length > 0 ? Math.round(gRev/allReal.length) : 0;
 
-        document.getElementById('kpi-rev').innerText = "$" + gRev.toLocaleString();
-        document.getElementById('kpi-cogs').innerText = "$" + gCost.toLocaleString();
-        document.getElementById('kpi-profit').innerText = "$" + gProfit.toLocaleString();
-        document.getElementById('kpi-margin').innerText = gMargin + "%";
-        document.getElementById('op-ticket').innerText = "$" + avg.toLocaleString();
+        const kpiRev = document.getElementById('kpi-rev');
+        if(kpiRev) kpiRev.innerText = "$" + gRev.toLocaleString();
+        const kpiCogs = document.getElementById('kpi-cogs');
+        if(kpiCogs) kpiCogs.innerText = "$" + gCost.toLocaleString();
+        const kpiProfit = document.getElementById('kpi-profit');
+        if(kpiProfit) kpiProfit.innerText = "$" + gProfit.toLocaleString();
+        const kpiMargin = document.getElementById('kpi-margin');
+        if(kpiMargin) kpiMargin.innerText = gMargin + "%";
+        const opTicket = document.getElementById('op-ticket');
+        if(opTicket) opTicket.innerText = "$" + avg.toLocaleString();
 
-        document.getElementById('op-leads').innerText = db.jobs.filter(j=>j.status==='Lead').length;
-        document.getElementById('op-wip').innerText = active.length;
-        document.getElementById('op-done').innerText = db.jobs.filter(j=>j.status==='Done').length;
-        const totalOpp = db.jobs.filter(j=>j.status!=='Canceled').length;
-        document.getElementById('op-win').innerText = (totalOpp>0 ? Math.round((allReal.length/totalOpp)*100) : 0) + "%";
+        const opLeads = document.getElementById('op-leads');
+        if(opLeads) opLeads.innerText = db.jobs.filter(j=>j.status==='Lead').length;
+        const opWip = document.getElementById('op-wip');
+        if(opWip) opWip.innerText = active.length;
+        const opDone = document.getElementById('op-done');
+        if(opDone) opDone.innerText = db.jobs.filter(j=>j.status==='Done').length;
+        // op-win element doesn't exist in HTML, so we skip it
 
+        // Initialize charts after a short delay to ensure DOM is ready
         setTimeout(() => {
-            const ctxFin = document.getElementById('finChart').getContext('2d');
-            if(finChart) finChart.destroy();
-            // finChart = new Chart(ctxFin, { type: 'bar', data: { labels:['Revenue', 'Costs', 'Net'], datasets:[{label:'Financials', data:[gRev, gCost, gProfit], backgroundColor:['#0f172a','#ef4444','#10b981']}] }, options:{maintainAspectRatio:false} });
+            if(typeof Chart === 'undefined') {
+                console.error('Chart.js is not loaded');
+                return;
+            }
             
-        finChart = new Chart(document.getElementById('finChart'), { type:'bar', data:{labels:['Finance'], datasets:[{label:'Rev', data:[rev], backgroundColor:'#0f172a'}, {label:'Profit', data:[profit], backgroundColor:'#10b981'}]}, options:{maintainAspectRatio:false} });
-        
-        if(funnelChart) funnelChart.destroy();
-        funnelChart = new Chart(document.getElementById('funnelChart'), { type:'doughnut', data:{labels:['Leads','WIP','Done'], datasets:[{data:[leads.length, db.jobs.filter(j=>j.status==='InProgress').length, completed.length], backgroundColor:['#e0f2fe','#f59e0b','#10b981']}]}, options:{maintainAspectRatio:false} });
+            const canvasFin = document.getElementById('finChart');
+            if(!canvasFin) {
+                console.error('finChart canvas not found');
+                return;
+            }
             
-            const ctxFun = document.getElementById('funnelChart').getContext('2d');
-            if(funnelChart) funnelChart.destroy();
-            funnelChart = new Chart(ctxFun, { type: 'doughnut', data: { labels:['Leads', 'WIP', 'Done'], datasets:[{data:[db.jobs.filter(j=>j.status==='Lead').length, active.length, db.jobs.filter(j=>j.status==='Done').length], backgroundColor:['#e0f2fe','#f59e0b','#10b981']}] }, options:{maintainAspectRatio:false} });
-        }, 100);
+            // Destroy existing chart if it exists
+            if(finChart) {
+                try {
+                    finChart.destroy();
+                } catch(e) {}
+            }
+            
+            try {
+                const ctxFin = canvasFin.getContext('2d');
+                finChart = new Chart(ctxFin, { 
+                    type: 'bar', 
+                    data: { 
+                        labels:['Revenue', 'Costs', 'Net Profit'], 
+                        datasets:[{
+                            label:'Financials', 
+                            data:[gRev, gCost, gProfit], 
+                            backgroundColor:['#0f172a','#ef4444','#10b981']
+                        }] 
+                    }, 
+                    options:{
+                        maintainAspectRatio:false,
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: true
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    } 
+                });
+                console.log('Financial chart created successfully');
+            } catch(e) {
+                console.error('Error creating finChart:', e);
+            }
+            
+            const canvasFun = document.getElementById('funnelChart');
+            if(!canvasFun) {
+                console.error('funnelChart canvas not found');
+                return;
+            }
+            
+            // Destroy existing chart if it exists
+            if(funnelChart) {
+                try {
+                    funnelChart.destroy();
+                } catch(e) {}
+            }
+            
+            try {
+                const leadsCount = db.jobs.filter(j=>j.status==='Lead').length;
+                const wipCount = active.length;
+                const doneCount = db.jobs.filter(j=>j.status==='Done').length;
+                
+                const ctxFun = canvasFun.getContext('2d');
+                funnelChart = new Chart(ctxFun, { 
+                    type: 'doughnut', 
+                    data: { 
+                        labels:['Leads', 'WIP', 'Done'], 
+                        datasets:[{
+                            data:[leadsCount, wipCount, doneCount], 
+                            backgroundColor:['#e0f2fe','#f59e0b','#10b981']
+                        }] 
+                    }, 
+                    options:{
+                        maintainAspectRatio:false,
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom'
+                            }
+                        }
+                    } 
+                });
+                console.log('Funnel chart created successfully');
+            } catch(e) {
+                console.error('Error creating funnelChart:', e);
+            }
+        }, 500);
     }
     
     function renderJobs(f="") {
@@ -491,10 +582,15 @@
     function addLabor() { const jid=document.getElementById('cost_jid').value; const uid=document.getElementById('cost_labor').value; const qty=safeNum(document.getElementById('cost_lqty').value); const j=db.jobs.find(x=>x.id==jid); const user=db.team.find(u=>u.id==uid); if(!j.labor) j.labor=[]; j.labor.push({id:Date.now(), name:user.name, hours:qty, rate:user.rate, total:user.rate*qty}); saveData(); renderCostList(jid); }
     function removeCostItem(jid, id, type) { const j=db.jobs.find(x=>x.id==jid); if(type==='mat') j.expenses=j.expenses.filter(x=>x.id!=id); else j.labor=j.labor.filter(x=>x.id!=id); saveData(); renderCostList(jid); }
     function renderCostList(jid) {
-        const j=db.jobs.find(x=>x.id==jid); const list=document.getElementById('cost-list'); list.innerHTML=""; let mTot=0, lTot=0;
-        (j.expenses||[]).forEach(x => { mTot+=x.total; list.innerHTML+=`<tr><td>MAT</td><td>${x.name}</td><td>${x.qty}</td><td>$${x.total.toLocaleString()}</td><td><i class="fas fa-trash" style="color:red;cursor:pointer" onclick="removeCostItem(${jid},${x.id},'mat')"></i></td></tr>`; });
-        (j.labor||[]).forEach(x => { lTot+=x.total; list.innerHTML+=`<tr><td>LAB</td><td>${x.name}</td><td>${x.hours}h</td><td>$${x.total.toLocaleString()}</td><td><i class="fas fa-trash" style="color:red;cursor:pointer" onclick="removeCostItem(${jid},${x.id},'lab')"></i></td></tr>`; });
-        document.getElementById('sum-mat').innerText="$"+mTot; document.getElementById('sum-lab').innerText="$"+lTot; document.getElementById('sum-total').innerText="$"+(mTot+lTot);
+        const j=db.jobs.find(x=>x.id==jid); const list=document.getElementById('cost-list'); if(list) list.innerHTML=""; let mTot=0, lTot=0;
+        (j.expenses||[]).forEach(x => { mTot+=x.total; if(list) list.innerHTML+=`<tr><td>MAT</td><td>${x.name}</td><td>${x.qty}</td><td>$${x.total.toLocaleString()}</td><td><i class="fas fa-trash" style="color:red;cursor:pointer" onclick="removeCostItem(${jid},${x.id},'mat')"></i></td></tr>`; });
+        (j.labor||[]).forEach(x => { lTot+=x.total; if(list) list.innerHTML+=`<tr><td>LAB</td><td>${x.name}</td><td>${x.hours}h</td><td>$${x.total.toLocaleString()}</td><td><i class="fas fa-trash" style="color:red;cursor:pointer" onclick="removeCostItem(${jid},${x.id},'lab')"></i></td></tr>`; });
+        const sumMat = document.getElementById('sum-mat');
+        if(sumMat) sumMat.innerText="$"+mTot;
+        const sumLab = document.getElementById('sum-lab');
+        if(sumLab) sumLab.innerText="$"+lTot;
+        const sumTotal = document.getElementById('sum-total');
+        if(sumTotal) sumTotal.innerText="$"+(mTot+lTot);
     }
 
     // --- CRUD ---
