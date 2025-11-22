@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ConstructAI - Fixed Charts</title>
+    <title>ConstructAI - v11 Fixed</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -28,15 +28,20 @@
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100dvh; overflow: hidden; }
 
+        /* --- SCROLLBARS --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
         /* --- AUTH SCREEN --- */
         #auth-screen { position: fixed; inset:0; background: var(--primary); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
         .login-card { background: white; padding: 40px; border-radius: 16px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
         .login-input { width: 100%; padding: 14px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; }
 
-        /* --- APP STRUCTURE --- */
+        /* --- APP LAYOUT --- */
         #app-container { display: none; width: 100%; height: 100%; }
         
-        /* Sidebar */
+        /* Sidebar (Desktop) */
         .sidebar { width: var(--sidebar-width); background: var(--primary); color: white; display: flex; flex-direction: column; flex-shrink: 0; height: 100%; z-index: 50; }
         .brand { padding: 24px; font-size: 1.2rem; font-weight: 800; border-bottom: 1px solid var(--primary-light); display: flex; align-items: center; gap: 10px; }
         .nav-menu { flex: 1; padding-top: 20px; overflow-y: auto; }
@@ -46,7 +51,7 @@
         
         .user-panel { padding: 20px; border-top: 1px solid var(--primary-light); background: rgba(0,0,0,0.2); }
         .user-btn { background: var(--primary-light); border: 1px solid #475569; color: #cbd5e1; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; flex: 1; display: flex; justify-content: center; align-items: center; gap: 5px; }
-        .user-btn:hover { background: var(--accent); color: white; }
+        .user-btn:hover { background: var(--accent); border-color: var(--accent); color: white; }
 
         /* Main Content */
         .main-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; width: 100%; }
@@ -61,8 +66,8 @@
         .stat-val { font-size: 1.8rem; font-weight: 800; color: var(--primary); margin: 8px 0; }
         .stat-lbl { font-size: 0.75rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; }
         
-        /* Chart Container Fix */
-        .chart-wrapper { background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border); height: 350px; position: relative; }
+        /* Chart Container */
+        .chart-box { position: relative; height: 350px; background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border); width: 100%; }
 
         /* --- LISTS --- */
         .list-stack { display: flex; flex-direction: column; gap: 12px; }
@@ -83,9 +88,9 @@
         .btn-danger { background: #fee2e2; color: var(--danger); }
         .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
         
-        /* --- MOBILE NAV --- */
+        /* --- MOBILE NAV (Hidden on Desktop) --- */
         .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-height); background: var(--surface); border-top: 1px solid var(--border); z-index: 1000; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); }
-        .b-item { color: var(--text-light); display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; gap: 4px; flex: 1; height: 100%; justify-content: center; }
+        .b-item { color: var(--text-light); display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; gap: 4px; flex: 1; height: 100%; justify-content: center; cursor: pointer; }
         .b-item.active { color: var(--accent); font-weight: 700; }
         .b-item i { font-size: 1.3rem; }
 
@@ -135,7 +140,7 @@
     <div class="login-card">
         <h1 style="color:var(--accent); margin-bottom:5px; font-size: 3rem;"><i class="fas fa-layer-group"></i></h1>
         <h2 style="margin-top:0; color:var(--text);">ConstructAI</h2>
-        <p style="color:var(--text-light); margin-bottom:30px; font-size: 0.9rem;">v9.1 Final</p>
+        <p style="color:var(--text-light); margin-bottom:30px; font-size: 0.9rem;">Enterprise v11.0</p>
         <input type="email" id="email" class="login-input" placeholder="Email">
         <input type="password" id="password" class="login-input" placeholder="Password">
         <button class="btn btn-primary" style="width:100%; padding: 14px;" onclick="authLogin()">Sign In</button>
@@ -192,12 +197,8 @@
                 </div>
 
                 <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
-                    <div class="chart-wrapper">
-                        <canvas id="finChart"></canvas>
-                    </div>
-                    <div class="chart-wrapper">
-                        <canvas id="funnelChart"></canvas>
-                    </div>
+                    <div class="chart-box"><canvas id="finChart"></canvas></div>
+                    <div class="chart-box"><canvas id="funnelChart"></canvas></div>
                 </div>
             </div>
 
@@ -354,6 +355,9 @@
             db.catalog = v.catalog ? Object.values(v.catalog) : [];
             db.team = v.team ? Object.values(v.team) : [];
             
+            // AUTO-SEED IF EMPTY
+            if(db.team.length === 0) seedData(email);
+
             const profile = db.team.find(t => t.email && t.email.toLowerCase() === email.toLowerCase());
             currentUser = profile || { name: "Admin", role: "Admin", email: email, id: "ADMIN" };
 
@@ -363,9 +367,9 @@
                 document.getElementById('nav-crew-mobile').style.display = 'none';
                 document.getElementById('adm-name').innerText = currentUser.name;
                 
-                // Trigger render based on current active view
-                const currentView = document.querySelector('.view-section.active').id.replace('view-', '');
-                nav(currentView);
+                // Render Active Tab
+                const activeTab = document.querySelector('.view-section.active').id.replace('view-', '');
+                nav(activeTab);
             } else {
                 document.querySelector('.sidebar').style.display = 'none';
                 document.getElementById('nav-admin-mobile').style.display = 'none';
@@ -375,6 +379,12 @@
                 renderCrew();
             }
         });
+    }
+    
+    function seedData(email) {
+        db.team.push({id:Date.now(), name:"Admin User", role:"Admin", email:email, rate:0});
+        db.catalog.push({id:Date.now()+1, name:"Lumber 2x4", vendor:"Home Depot", cost:5});
+        saveData();
     }
 
     // --- HELPERS ---
@@ -389,7 +399,7 @@
 
     // --- ADMIN RENDER ---
     function renderAdmin() {
-        // Logic is now handled in nav() to prevent overwriting the UI
+        // Refresh Current View Logic handled by Nav
     }
 
     function renderDashboard() {
@@ -415,11 +425,16 @@
         const totalOpp = db.jobs.filter(j=>j.status!=='Canceled').length;
         document.getElementById('op-win').innerText = (totalOpp>0 ? Math.round((allReal.length/totalOpp)*100) : 0) + "%";
 
-        if(finChart) finChart.destroy();
-        finChart = new Chart(document.getElementById('finChart'), { type: 'bar', data: { labels:['Revenue', 'Costs', 'Net'], datasets:[{label:'Financials', data:[gRev, gCost, gProfit], backgroundColor:['#0f172a','#ef4444','#10b981']}] }, options:{maintainAspectRatio:false} });
-        
-        if(funnelChart) funnelChart.destroy();
-        funnelChart = new Chart(document.getElementById('funnelChart'), { type: 'doughnut', data: { labels:['Leads', 'WIP', 'Done'], datasets:[{data:[db.jobs.filter(j=>j.status==='Lead').length, active.length, db.jobs.filter(j=>j.status==='Done').length], backgroundColor:['#e0f2fe','#f59e0b','#10b981']}] }, options:{maintainAspectRatio:false} });
+        // DRAW CHARTS AFTER DOM UPDATE
+        setTimeout(() => {
+            const ctxFin = document.getElementById('finChart').getContext('2d');
+            if(finChart) finChart.destroy();
+            finChart = new Chart(ctxFin, { type: 'bar', data: { labels:['Revenue', 'Costs', 'Net'], datasets:[{label:'Financials', data:[gRev, gCost, gProfit], backgroundColor:['#0f172a','#ef4444','#10b981']}] }, options:{maintainAspectRatio:false} });
+            
+            const ctxFun = document.getElementById('funnelChart').getContext('2d');
+            if(funnelChart) funnelChart.destroy();
+            funnelChart = new Chart(ctxFun, { type: 'doughnut', data: { labels:['Leads', 'WIP', 'Done'], datasets:[{data:[db.jobs.filter(j=>j.status==='Lead').length, active.length, db.jobs.filter(j=>j.status==='Done').length], backgroundColor:['#e0f2fe','#f59e0b','#10b981']}] }, options:{maintainAspectRatio:false} });
+        }, 100);
     }
     
     function renderJobs(f="") {
@@ -501,13 +516,12 @@
         document.getElementById('view-'+v).classList.add('active'); 
         document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); 
         if(e)e.classList.add('active'); 
+        if(v=='calendar') setTimeout(()=>initCalendar(),200); 
         if(v=='dashboard') renderDashboard();
         if(v=='jobs') renderJobs();
         if(v=='team') renderTeam();
         if(v=='catalog') renderCatalog();
-        if(v=='calendar') setTimeout(()=>initCalendar(),200); 
     }
-
     function closeModals(){document.querySelectorAll('.modal-overlay').forEach(e=>e.style.display='none');}
     function notify(m){const d=document.createElement('div');d.className='toast';d.innerHTML=`<i class="fas fa-check-circle"></i> ${m}`;document.getElementById('toast-container').appendChild(d);setTimeout(()=>d.remove(),3000);}
     function saveData(){dbRef.ref().set(arrToObj(db)); if(currentUser.role==='Admin') { renderDashboard(); renderJobs(); } else renderCrew(); notify("Saved");}
