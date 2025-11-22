@@ -732,6 +732,12 @@
 
     // --- HELPERS ---
     function safeNum(v) { return Number(v) || 0; }
+    function capitalizeWords(str) {
+        if(!str) return '';
+        return str.split(' ').map(word => 
+            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        ).join(' ');
+    }
     function getFin(j) {
         const mat = (j.expenses || []).reduce((s, x) => s + safeNum(x.total), 0);
         const lab = (j.labor || []).reduce((s, x) => s + safeNum(x.total), 0);
@@ -882,7 +888,8 @@
             const fName = db.team.find(t => t.id == j.foremanId)?.name || "Unassigned";
             const fin = getFin(j);
             const margin = j.value>0 ? Math.round((fin.profit/j.value)*100) : 0;
-            l.innerHTML += `<div class="list-card"><div style="flex:1"><span class="badge badge-${j.status}">${j.status}</span><div style="font-weight:700; margin-top:5px;">${j.name}</div><div style="font-size:0.8rem; color:var(--text-light);">${fName}</div></div><div class="mobile-hide" style="text-align:right; margin:0 20px;"><div style="font-weight:700; color:var(--primary);">$${safeNum(j.value).toLocaleString()}</div><div style="font-size:0.75rem; color:var(--danger)">Cost: $${fin.cost.toLocaleString()}</div><div style="font-size:0.75rem; color:${fin.profit>=0?'var(--success)':'var(--danger)'}">${margin}% Margin</div></div><div style="display:flex; gap:8px;"><button class="btn btn-outline btn-sm" onclick="openCostModal(${j.id})"><i class="fas fa-calculator"></i> Costs</button><button class="btn btn-outline btn-sm" onclick="openJobModal(${j.id})"><i class="fas fa-pen"></i></button><button class="btn btn-danger btn-sm" onclick="delJob(${j.id})"><i class="fas fa-trash"></i></button></div></div>`;
+            const displayName = capitalizeWords(j.name);
+            l.innerHTML += `<div class="list-card"><div style="flex:1"><span class="badge badge-${j.status}">${j.status}</span><div style="font-weight:700; margin-top:5px;">${displayName}</div><div style="font-size:0.8rem; color:var(--text-light);">${fName}</div></div><div class="mobile-hide" style="text-align:right; margin:0 20px;"><div style="font-weight:700; color:var(--primary);">$${safeNum(j.value).toLocaleString()}</div><div style="font-size:0.75rem; color:var(--danger)">Cost: $${fin.cost.toLocaleString()}</div><div style="font-size:0.75rem; color:${fin.profit>=0?'var(--success)':'var(--danger)'}">${margin}% Margin</div></div><div style="display:flex; gap:8px;"><button class="btn btn-outline btn-sm" onclick="openCostModal(${j.id})"><i class="fas fa-calculator"></i> Costs</button><button class="btn btn-outline btn-sm" onclick="openJobModal(${j.id})"><i class="fas fa-pen"></i></button><button class="btn btn-danger btn-sm" onclick="delJob(${j.id})"><i class="fas fa-trash"></i></button></div></div>`;
         });
     }
     
