@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ConstructAI - Commercial</title>
+    <title>ConstructAI - PE Dashboard Fixed</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -16,15 +16,19 @@
 
     <style>
         :root {
-            --primary: #0f172a; --accent: #3b82f6;
+            --primary: #0f172a; --primary-light: #1e293b;
+            --accent: #3b82f6; --accent-hover: #2563eb;
             --bg: #f8fafc; --surface: #ffffff;
             --text: #334155; --text-light: #64748b; --border: #e2e8f0;
             --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
             --nav-height: 65px;
         }
-        
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100dvh; overflow: hidden; }
+
+        /* --- SCROLLBARS --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
 
         /* --- LOGIN --- */
         #auth-screen { position: fixed; inset:0; background: var(--primary); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
@@ -32,30 +36,29 @@
         .login-input { width: 100%; padding: 14px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; }
 
         /* --- LAYOUTS --- */
-        #admin-app, #crew-app { display: none; width: 100%; height: 100%; flex-direction: column; }
+        #admin-app, #crew-app { display: none; width: 100%; height: 100%; }
         
-        /* Sidebar (Desktop) */
+        /* Sidebar */
         .sidebar { width: 260px; background: var(--primary); color: white; display: flex; flex-direction: column; flex-shrink: 0; height: 100%; }
-        .brand { padding: 24px; font-size: 1.2rem; font-weight: 800; border-bottom: 1px solid #1e293b; display: flex; align-items: center; gap: 10px; }
+        .brand { padding: 24px; font-size: 1.2rem; font-weight: 800; border-bottom: 1px solid var(--primary-light); display: flex; align-items: center; gap: 10px; }
         .nav-menu { flex: 1; padding-top: 20px; overflow-y: auto; }
         .nav-item { padding: 12px 24px; cursor: pointer; color: #94a3b8; display: flex; gap: 12px; align-items: center; font-weight: 500; transition: 0.2s; border-left: 4px solid transparent; }
-        .nav-item:hover, .nav-item.active { background: #1e293b; color: white; border-left-color: var(--accent); }
+        .nav-item:hover, .nav-item.active { background: var(--primary-light); color: white; border-left-color: var(--accent); }
         
-        .user-panel { padding: 20px; border-top: 1px solid #1e293b; background: rgba(0,0,0,0.2); }
-        .user-btn { background: #1e293b; border: 1px solid #475569; color: #cbd5e1; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; flex: 1; display: flex; justify-content: center; align-items: center; gap: 5px; }
+        .user-panel { padding: 20px; border-top: 1px solid var(--primary-light); background: rgba(0,0,0,0.2); }
+        .user-btn { background: var(--primary-light); border: 1px solid #475569; color: #cbd5e1; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; flex: 1; display: flex; justify-content: center; align-items: center; gap: 5px; }
 
         /* Main Content */
         .main-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; width: 100%; }
         .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; height: 70px; flex-shrink: 0; }
-        
-        /* View Container */
-        .content { flex: 1; padding: 20px; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; padding-bottom: 100px; /* Mobile padding */ }
+        .content { flex: 1; padding: 20px; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; padding-bottom: 100px; }
 
         /* --- DASHBOARD --- */
+        .section-title { font-size: 0.75rem; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 15px; margin-top: 10px; }
         .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .stat-card { background: var(--surface); padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        .stat-val { font-size: 1.5rem; font-weight: 800; color: var(--primary); margin: 5px 0; }
-        .stat-lbl { font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-val { font-size: 1.6rem; font-weight: 800; color: var(--primary); margin: 5px 0; }
+        .stat-lbl { font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; }
 
         /* --- LISTS --- */
         .list-card { background: var(--surface); padding: 15px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
@@ -66,7 +69,6 @@
         .badge-Scheduled { background: #ffedd5; color: #c2410c; } 
         .badge-InProgress { background: #f3e8ff; color: #7e22ce; } 
         .badge-Done { background: #dcfce7; color: #15803d; }
-        .badge-Canceled { background: #fee2e2; color: #991b1b; text-decoration: line-through; }
 
         /* --- COMPONENTS --- */
         .btn { padding: 10px 16px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; transition: 0.2s; }
@@ -81,17 +83,16 @@
         .b-item.active { color: var(--accent); font-weight: bold; }
         .b-item i { font-size: 1.2rem; }
 
-        /* --- CREW UI --- */
-        .job-card-mobile { background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 5px solid var(--accent); border: 1px solid var(--border); border-left-width: 5px; }
-        .job-card-mobile.status-Scheduled { border-left-color: var(--warning); }
-        .job-card-mobile.status-InProgress { border-left-color: #7e22ce; }
-        .job-card-mobile.status-Done { border-left-color: var(--success); opacity: 0.7; }
-
         /* --- MODALS --- */
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); z-index: 3000; justify-content: center; align-items: center; }
         .modal { background: var(--surface); padding: 25px; width: 95%; max-width: 600px; border-radius: 16px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         input, select { width: 100%; padding: 12px; margin: 8px 0 20px 0; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 16px; }
+
+        /* --- COST TABLE --- */
+        .cost-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .cost-table th { text-align: left; border-bottom: 2px solid var(--border); padding: 8px; color: var(--text-light); font-size: 0.7rem; text-transform: uppercase; }
+        .cost-table td { border-bottom: 1px solid var(--border); padding: 8px; vertical-align: middle; }
 
         /* --- RESPONSIVE --- */
         @media (max-width: 768px) {
@@ -108,6 +109,8 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         #toast-container { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); z-index: 4000; width: 90%; max-width: 400px; }
         .toast { background: var(--primary); color: white; padding: 14px; border-radius: 8px; margin-top: 10px; font-weight: 500; box-shadow: 0 10px 20px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px;}
+        
+        .crew-card-mobile { background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border); border-left: 5px solid var(--accent); margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
@@ -116,11 +119,11 @@
     <div class="login-card">
         <h1 style="color:var(--accent); margin-bottom:5px;"><i class="fas fa-hard-hat"></i></h1>
         <h2 style="margin-top:0; color:var(--text);">ConstructAI</h2>
-        <p style="color:var(--text-light); margin-bottom:20px;">Commercial Login</p>
+        <p style="color:var(--text-light); margin-bottom:20px;">PE Edition Login</p>
         <input type="email" id="email" class="login-input" placeholder="Email">
         <input type="password" id="password" class="login-input" placeholder="Password">
         <button class="btn btn-primary" style="width:100%" onclick="authLogin()">Sign In</button>
-        <div style="margin-top:20px; font-size:0.9rem; cursor:pointer; color:var(--text-light);" onclick="authRegister()">Initialize Admin Account</div>
+        <div style="margin-top:20px; font-size:0.9rem; cursor:pointer; color:var(--text-light);" onclick="authRegister()">Create Admin Account</div>
     </div>
 </div>
 
@@ -129,11 +132,11 @@
         <div class="sidebar">
             <div class="brand"><i class="fas fa-chart-line"></i> ConstructAI</div>
             <div class="nav-menu">
-                <div class="nav-item active" onclick="nav('dashboard', this)"><i class="fas fa-tachometer-alt"></i> Dashboard</div>
+                <div class="nav-item active" onclick="nav('dashboard', this)"><i class="fas fa-tachometer-alt"></i> Performance</div>
+                <div class="nav-item" onclick="nav('jobs', this)"><i class="fas fa-briefcase"></i> Job Ledger</div>
                 <div class="nav-item" onclick="nav('calendar', this)"><i class="fas fa-calendar-check"></i> Schedule</div>
-                <div class="nav-item" onclick="nav('jobs', this)"><i class="fas fa-briefcase"></i> Jobs</div>
-                <div class="nav-item" onclick="nav('team', this)"><i class="fas fa-users"></i> Workforce</div>
                 <div class="nav-item" onclick="nav('catalog', this)"><i class="fas fa-tags"></i> Price Book</div>
+                <div class="nav-item" onclick="nav('team', this)"><i class="fas fa-users"></i> Workforce</div>
             </div>
             <div class="user-panel">
                 <div style="color:white; font-weight:bold; margin-bottom:5px;" id="adm-name">Admin</div>
@@ -146,49 +149,59 @@
 
         <div class="main-body">
             <div class="header">
-                <div style="font-weight:800; font-size:1.2rem; color:var(--primary);">Dashboard</div>
-                <div style="color: var(--success); font-size: 0.8rem; font-weight: 600;"><i class="fas fa-wifi"></i> Live</div>
+                <div style="font-weight:800; font-size:1.2rem; color:var(--primary);">PE Dashboard</div>
+                <div style="color: var(--success); font-size: 0.8rem; font-weight: 600;"><i class="fas fa-wifi"></i> Connected</div>
             </div>
 
             <div class="content">
                 <div id="view-dashboard" class="view-section active">
+                    <div class="section-title">FINANCIALS (EBITDA DRIVERS)</div>
                     <div class="card-grid">
-                        <div class="stat-card"><div class="stat-lbl">Revenue</div><div class="stat-val" id="kpi-rev">$0</div></div>
-                        <div class="stat-card"><div class="stat-lbl">Costs</div><div class="stat-val" style="color:var(--danger)" id="kpi-cogs">$0</div></div>
+                        <div class="stat-card"><div class="stat-lbl">Gross Revenue</div><div class="stat-val" id="kpi-rev">$0</div></div>
+                        <div class="stat-card"><div class="stat-lbl">COGS (Mat + Lab)</div><div class="stat-val" style="color:var(--danger)" id="kpi-cogs">$0</div></div>
                         <div class="stat-card"><div class="stat-lbl">Net Profit</div><div class="stat-val" style="color:var(--success)" id="kpi-profit">$0</div></div>
-                        <div class="stat-card"><div class="stat-lbl">Active</div><div class="stat-val" style="color:var(--warning)" id="kpi-active">0</div></div>
+                        <div class="stat-card"><div class="stat-lbl">Margin %</div><div class="stat-val" style="color:var(--accent)" id="kpi-margin">0%</div></div>
                     </div>
-                    <div style="background:white; padding:20px; border-radius:12px; border:1px solid var(--border); height:350px;">
+
+                    <div class="section-title">OPERATIONAL EFFICIENCY</div>
+                    <div class="card-grid">
+                        <div class="stat-card"><div class="stat-lbl">Pipeline (Leads)</div><div class="stat-val" id="op-leads">0</div></div>
+                        <div class="stat-card"><div class="stat-lbl">Active (WIP)</div><div class="stat-val" style="color:var(--warning)" id="op-wip">0</div></div>
+                        <div class="stat-card"><div class="stat-lbl">Completed</div><div class="stat-val" style="color:var(--success)" id="op-done">0</div></div>
+                        <div class="stat-card"><div class="stat-lbl">Avg Ticket</div><div class="stat-val" id="op-ticket">$0</div></div>
+                    </div>
+
+                    <div style="background:white; padding:20px; border-radius:12px; border:1px solid var(--border); height:350px; margin-bottom: 30px;">
                         <canvas id="finChart"></canvas>
                     </div>
+                </div>
+
+                <div id="view-jobs" class="view-section">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                        <h2 style="margin:0; font-size:1.5rem;">Job Ledger</h2>
+                        <button class="btn btn-primary" onclick="openJobModal()"><i class="fas fa-plus"></i> New Job</button>
+                    </div>
+                    <div id="jobList" class="list-stack"></div>
                 </div>
 
                 <div id="view-calendar" class="view-section">
                     <div id="calendar" style="background:white; padding:15px; border-radius:12px; min-height:600px;"></div>
                 </div>
 
-                <div id="view-jobs" class="view-section">
+                <div id="view-catalog" class="view-section">
                     <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                        <h2 style="margin:0; font-size:1.5rem;">Job Ledger</h2>
-                        <button class="btn btn-primary" onclick="openJobModal()"><i class="fas fa-plus"></i> New</button>
+                        <h2 style="margin:0; font-size:1.5rem;">Price Book</h2>
+                        <button class="btn btn-primary" onclick="openCatalogModal()"><i class="fas fa-plus"></i> Add Item</button>
                     </div>
-                    <div id="jobList" class="list-stack"></div>
+                    <div id="catalogList" class="list-stack"></div>
                 </div>
 
                 <div id="view-team" class="view-section">
                     <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
                         <h2 style="margin:0; font-size:1.5rem;">Workforce</h2>
-                        <button class="btn btn-primary" onclick="openTeamModal()"><i class="fas fa-user-plus"></i> Add</button>
+                        <button class="btn btn-primary" onclick="openTeamModal()"><i class="fas fa-user-plus"></i> Add Crew</button>
                     </div>
                     <div id="teamList" class="list-stack"></div>
-                </div>
-
-                <div id="view-catalog" class="view-section">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                        <h2 style="margin:0; font-size:1.5rem;">Price Book</h2>
-                        <button class="btn btn-primary" onclick="openCatalogModal()"><i class="fas fa-plus"></i> Add</button>
-                    </div>
-                    <div id="catalogList" class="list-stack"></div>
                 </div>
             </div>
         </div>
@@ -214,6 +227,10 @@
         <h3 style="margin-bottom:20px; color:var(--text-light); font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">My Assignments</h3>
         <div id="crewJobList"></div>
     </div>
+    <div class="bottom-nav">
+        <div class="b-item active"><i class="fas fa-hammer"></i><span>My Jobs</span></div>
+        <div class="b-item" onclick="openProfileModal()"><i class="fas fa-user"></i><span>Profile</span></div>
+    </div>
 </div>
 
 <div id="toast-container"></div>
@@ -224,7 +241,7 @@
         <input type="hidden" id="j_id">
         <label>Project Name</label><input type="text" id="j_name">
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-            <div><label>Revenue ($)</label><input type="number" id="j_val"></div>
+            <div><label>Contract ($)</label><input type="number" id="j_val"></div>
             <div><label>Status</label><select id="j_status"><option value="Lead">Lead</option><option value="Scheduled">Scheduled</option><option value="InProgress">In Progress</option><option value="Done">Done</option><option value="Canceled">Canceled</option></select></div>
         </div>
         <div style="background:#f8fafc; padding:10px; border-radius:8px; margin-bottom:20px;">
@@ -234,47 +251,49 @@
                 <div><label style="font-size:0.8rem">End</label><input type="datetime-local" id="j_end" style="margin:0"></div>
             </div>
         </div>
-        <label>Assign Crew</label><select id="j_foreman"></select>
+        <label>Assign Crew Lead</label><select id="j_foreman"></select>
         <label>Address</label><input type="text" id="j_address">
         <div style="display:flex; gap:10px;"><button class="btn btn-primary" style="flex:1" onclick="saveJob()">Save</button><button class="btn btn-outline" style="flex:1" onclick="closeModals()">Cancel</button></div>
     </div>
 </div>
 
-<div id="modalTeam" class="modal-overlay">
+<div id="modalCost" class="modal-overlay">
     <div class="modal">
-        <h2>Workforce</h2>
-        <input type="hidden" id="t_id">
-        <label>Name</label><input type="text" id="t_name">
-        <label>Role</label><select id="t_role"><option value="Admin">Manager</option><option value="Crew">Field Crew</option></select>
-        <label>Hourly Rate ($)</label><input type="number" id="t_rate">
-        <label>Login Email</label><input type="email" id="t_email">
-        <div style="display:flex; gap:10px;"><button class="btn btn-primary" style="flex:1" onclick="saveTeam()">Save</button><button class="btn btn-outline" style="flex:1" onclick="closeModals()">Cancel</button></div>
+        <h2>Job Costing</h2>
+        <input type="hidden" id="cost_jid">
+        
+        <div style="background:#f8fafc; padding:15px; border-radius:8px; margin-bottom:15px;">
+            <label style="color:var(--primary); font-weight:700;">Add Expense</label>
+            <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:10px; align-items:end;">
+                <div><label>Price Book Item</label><select id="cost_mat"></select></div>
+                <div><label>Qty</label><input type="number" id="cost_mqty" placeholder="1" style="margin:0"></div>
+                <button class="btn btn-primary" onclick="addMaterial()">Add</button>
+            </div>
+        </div>
+        
+        <div style="background:#f8fafc; padding:15px; border-radius:8px; margin-bottom:15px;">
+            <label style="color:var(--primary); font-weight:700;">Add Labor</label>
+            <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:10px; align-items:end;">
+                <div><label>Crew Member</label><select id="cost_labor"></select></div>
+                <div><label>Hours</label><input type="number" id="cost_lqty" placeholder="8" style="margin:0"></div>
+                <button class="btn btn-primary" onclick="addLabor()">Add</button>
+            </div>
+        </div>
+
+        <div style="max-height:200px; overflow-y:auto; border:1px solid var(--border); border-radius:8px;">
+            <table class="cost-table"><tbody id="cost-list"></tbody></table>
+        </div>
+        <div style="margin-top:15px; text-align:right; font-weight:800; font-size:1.1rem;">Total Cost: <span id="cost-total">$0</span></div>
+        <div style="margin-top:20px"><button class="btn btn-outline" style="width:100%" onclick="closeModals()">Close</button></div>
     </div>
 </div>
 
-<div id="modalCat" class="modal-overlay">
-    <div class="modal">
-        <h2>Price Book</h2>
-        <input type="hidden" id="c_id">
-        <label>Item Name</label><input type="text" id="c_name">
-        <label>Vendor</label><input type="text" id="c_vendor">
-        <label>Cost ($)</label><input type="number" id="c_cost">
-        <div style="display:flex; gap:10px;"><button class="btn btn-primary" style="flex:1" onclick="saveCatalog()">Save</button><button class="btn btn-outline" style="flex:1" onclick="closeModals()">Cancel</button></div>
-    </div>
-</div>
-
-<div id="modalProfile" class="modal-overlay">
-    <div class="modal">
-        <h2>My Profile</h2>
-        <label>Full Name</label><input type="text" id="pf_name">
-        <label>Email</label><input type="email" id="pf_email">
-        <label>New Password</label><input type="password" id="pf_pass" placeholder="Leave blank to keep current">
-        <div style="display:flex; gap:10px;"><button class="btn btn-primary" style="flex:1" onclick="saveProfile()">Update</button><button class="btn btn-outline" style="flex:1" onclick="closeModals()">Close</button></div>
-    </div>
-</div>
+<div id="modalTeam" class="modal-overlay"><div class="modal"><h2>Crew Profile</h2><input type="hidden" id="t_id"><label>Name</label><input type="text" id="t_name"><label>Role</label><select id="t_role"><option value="Admin">Manager</option><option value="Crew">Field Crew</option></select><label>Hourly Rate ($)</label><input type="number" id="t_rate"><label>Email</label><input type="email" id="t_email"><div style="display:flex; gap:10px;"><button class="btn btn-primary" style="flex:1" onclick="saveTeam()">Save</button><button class="btn btn-outline" style="flex:1" onclick="closeModals()">Cancel</button></div></div></div>
+<div id="modalCat" class="modal-overlay"><div class="modal"><h2>Price Book Item</h2><input type="hidden" id="c_id"><label>Name</label><input type="text" id="c_name"><label>Vendor</label><input type="text" id="c_vendor"><label>Cost ($)</label><input type="number" id="c_cost"><div style="display:flex; gap:10px;"><button class="btn btn-primary" style="flex:1" onclick="saveCatalog()">Save</button><button class="btn btn-outline" style="flex:1" onclick="closeModals()">Cancel</button></div></div></div>
+<div id="modalProfile" class="modal-overlay"><div class="modal"><h2>My Profile</h2><label>Name</label><input type="text" id="pf_name"><label>Email</label><input type="email" id="pf_email"><label>New Password</label><input type="password" id="pf_pass" placeholder="Leave blank to keep"><div style="display:flex; gap:10px;"><button class="btn btn-primary" style="flex:1" onclick="saveProfile()">Update</button><button class="btn btn-outline" style="flex:1" onclick="closeModals()">Close</button></div></div></div>
 
 <script>
-    // --- CONFIGURATION ---
+    // --- CONFIG ---
     const firebaseConfig = {
         apiKey: "AIzaSyA2HNjITt0civU2SJ4I40XxdnWxryQRDO4",
         authDomain: "construct-erp.firebaseapp.com",
@@ -292,7 +311,7 @@
     let db = { jobs: [], catalog: [], team: [] };
     let currentUser, calendar, finChart;
 
-    // --- AUTH SYSTEM ---
+    // --- AUTH ---
     auth.onAuthStateChanged(user => {
         if(user) {
             document.getElementById('auth-screen').style.display='none';
@@ -308,14 +327,10 @@
     function authRegister() { const e=document.getElementById('email').value.trim(); const p=document.getElementById('password').value.trim(); if(!e||!p) return alert("Enter credentials"); auth.createUserWithEmailAndPassword(e,p).catch(e=>alert(e.message)); }
     function authLogout() { auth.signOut(); location.reload(); }
 
-    // --- DATA SYNC ---
+    // --- INIT ---
     function initApp(email) {
         dbRef.ref().on('value', snap => {
             const v = snap.val() || {};
-            
-            // --- DATA RECOVERY FIX ---
-            // If Firebase returns an object of objects (default behavior), we convert to Array.
-            // If it returns null, we default to empty array.
             db.jobs = v.jobs ? Object.values(v.jobs) : [];
             db.catalog = v.catalog ? Object.values(v.catalog) : [];
             db.team = v.team ? Object.values(v.team) : [];
@@ -335,7 +350,7 @@
         });
     }
 
-    // --- RENDER LOGIC ---
+    // --- ADMIN ---
     function renderAdmin() {
         renderDashboard(); 
         
@@ -343,14 +358,26 @@
         const l = document.getElementById('jobList'); l.innerHTML="";
         db.jobs.forEach(j => {
             const fName = db.team.find(t => t.id == j.foremanId)?.name || "Unassigned";
+            const matCost = (j.expenses || []).reduce((s,m)=>s+m.total,0);
+            const labCost = (j.labor || []).reduce((s,l)=>s+l.total,0);
+            const totalCost = matCost + labCost;
+            const profit = (j.value||0) - totalCost;
+            const margin = j.value>0 ? Math.round((profit/j.value)*100) : 0;
+
             l.innerHTML += `
             <div class="list-card">
-                <div>
+                <div style="flex:1">
                     <span class="badge badge-${j.status}">${j.status}</span>
                     <div style="font-weight:700; margin-top:5px;">${j.name}</div>
                     <div style="font-size:0.8rem; color:var(--text-light);">${fName}</div>
                 </div>
+                <div class="mobile-hide" style="text-align:right; margin:0 20px;">
+                    <div style="font-weight:700; color:var(--primary);">$${j.value.toLocaleString()}</div>
+                    <div style="font-size:0.8rem; color:var(--danger)">COGS: $${totalCost.toLocaleString()}</div>
+                    <div style="font-size:0.8rem; color:${margin>0?'var(--success)':'var(--danger)'}">${margin}% Margin</div>
+                </div>
                 <div style="display:flex; gap:8px;">
+                    <button class="btn btn-outline btn-sm" onclick="openCostModal(${j.id})"><i class="fas fa-calculator"></i> Costs</button>
                     <button class="btn btn-outline btn-sm" onclick="openJobModal(${j.id})"><i class="fas fa-pen"></i></button>
                     <button class="btn btn-danger btn-sm" onclick="delJob(${j.id})"><i class="fas fa-trash"></i></button>
                 </div>
@@ -362,10 +389,10 @@
         db.team.forEach(t => {
             tList.innerHTML += `
             <div class="list-card">
-                <div><strong>${t.name}</strong><br><span style="font-size:0.8rem;">${t.role}</span></div>
+                <div><strong>${t.name}</strong><br><span style="font-size:0.8rem; color:var(--text-light)">${t.role} ($${t.rate||0}/hr)</span></div>
                 <div style="display:flex; gap:5px;">
                     <button class="btn btn-outline btn-sm" onclick="openTeamModal(${t.id})">Edit</button>
-                    <button class="btn btn-danger btn-sm" onclick="delTeam(${t.id})"><i class="fas fa-user-times"></i></button>
+                    <button class="btn btn-danger btn-sm" onclick="delTeam(${t.id})"><i class="fas fa-trash"></i></button>
                 </div>
             </div>`;
         });
@@ -377,26 +404,43 @@
             <div class="list-card">
                 <div><strong>${c.name}</strong><br><span style="font-size:0.8rem;">${c.vendor}</span></div>
                 <div><strong>$${c.cost}</strong></div>
-                <button class="btn btn-danger btn-sm" onclick="delCatalog(${c.id})"><i class="fas fa-trash"></i></button>
+                <div style="display:flex; gap:5px;">
+                    <button class="btn btn-outline btn-sm" onclick="openCatalogModal(${c.id})">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="delCatalog(${c.id})"><i class="fas fa-trash"></i></button>
+                </div>
             </div>`;
         });
 
         initCalendar();
     }
 
-    // --- DASHBOARD ---
     function renderDashboard() {
         const active = db.jobs.filter(j=>j.status!=='Lead' && j.status!=='Done' && j.status!=='Canceled');
-        const rev = active.reduce((a,b)=>a+(Number(b.value)||0),0); // FORCE NUMBER
-        
+        const rev = active.reduce((a,b)=>a+(Number(b.value)||0),0);
+        let totalMat = 0; let totalLab = 0;
+        active.forEach(j => {
+            totalMat += (j.expenses || []).reduce((s,x)=>s+x.total,0);
+            totalLab += (j.labor || []).reduce((s,x)=>s+x.total,0);
+        });
+        const cogs = totalMat + totalLab;
+        const profit = rev - cogs;
+        const margin = rev>0 ? Math.round((profit/rev)*100) : 0;
+        const avg = active.length>0 ? Math.round(rev/active.length) : 0;
+
         document.getElementById('kpi-rev').innerText = "$" + rev.toLocaleString();
-        document.getElementById('kpi-active').innerText = active.length;
+        document.getElementById('kpi-cogs').innerText = "$" + cogs.toLocaleString();
+        document.getElementById('kpi-profit').innerText = "$" + profit.toLocaleString();
+        document.getElementById('kpi-margin').innerText = margin + "%";
         
-        // Chart
+        document.getElementById('op-leads').innerText = db.jobs.filter(j=>j.status==='Lead').length;
+        document.getElementById('op-wip').innerText = db.jobs.filter(j=>j.status==='InProgress').length;
+        document.getElementById('op-done').innerText = db.jobs.filter(j=>j.status==='Done').length;
+        document.getElementById('op-ticket').innerText = "$" + avg.toLocaleString();
+
         if(finChart) finChart.destroy();
         finChart = new Chart(document.getElementById('finChart'), {
             type: 'bar',
-            data: { labels:['Revenue'], datasets:[{label:'Pipeline', data:[rev], backgroundColor:'#3b82f6'}] },
+            data: { labels:['Revenue', 'Costs', 'Net'], datasets:[{label:'Financials', data:[rev, cogs, profit], backgroundColor:['#0f172a','#ef4444','#10b981']}] },
             options:{maintainAspectRatio:false}
         });
     }
@@ -404,76 +448,86 @@
     // --- CREW LOGIC ---
     function renderCrew() {
         const l = document.getElementById('crewJobList'); l.innerHTML="";
-        // Use Loose Equality (==) to match String ID vs Number ID
         const myJobs = db.jobs.filter(j => j.foremanId == currentUser.id && j.status !== 'Lead');
         
         if(myJobs.length === 0) { l.innerHTML=`<div style="text-align:center; padding:40px; color:#94a3b8">No active jobs.</div>`; return; }
 
         myJobs.forEach(j => {
             const map = `https://maps.google.com/?q=${encodeURIComponent(j.address||'')}`;
-            
+            const startStr = j.start ? new Date(j.start).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : "TBD";
+
             l.innerHTML += `
-            <div class="job-card-mobile status-${j.status}">
+            <div class="crew-card-mobile status-${j.status}">
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span class="badge badge-${j.status}">${j.status}</span></div>
                 <h3 style="margin:0;">${j.name}</h3>
-                <div style="margin:10px 0;"><a href="${map}" target="_blank" class="btn btn-sm btn-outline"><i class="fas fa-map-marker-alt"></i> ${j.address || 'No Address'}</a></div>
-                
-                ${j.status !== 'Done' ? 
-                    (j.status === 'Scheduled' ? 
-                    `<button class="btn btn-primary" style="width:100%" onclick="setStatus(${j.id}, 'InProgress')">Start Job</button>` :
-                    `<button class="btn btn-success" style="width:100%" onclick="setStatus(${j.id}, 'Done')">Complete Job</button>`) 
-                : ''}
+                <p style="color:var(--text-light); font-size:0.9rem; margin-top:5px;">${j.address || 'No Address'}</p>
+                <div style="background:#f8fafc; padding:10px; border-radius:8px; margin:15px 0; font-size:0.85rem;">
+                    <strong>Start:</strong> ${startStr}
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <a href="${map}" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none; text-align:center;">Map</a>
+                    ${j.status !== 'Done' ? 
+                        (j.status === 'Scheduled' ? 
+                        `<button class="btn btn-primary btn-sm" onclick="setStatus(${j.id}, 'InProgress')">Start</button>` :
+                        `<button class="btn btn-success btn-sm" onclick="setStatus(${j.id}, 'Done')">Complete</button>`) 
+                    : ''}
+                </div>
             </div>`;
         });
     }
 
-    // --- CRUD ACTIONS (FIXED IDS) ---
-    function saveJob() {
-        const id = document.getElementById('j_id').value;
-        const foremanId = document.getElementById('j_foreman').value;
-        
-        // 1. Get inputs
-        const name = document.getElementById('j_name').value;
-        const val = Number(document.getElementById('j_val').value);
-        const start = document.getElementById('j_start').value;
-        const end = document.getElementById('j_end').value;
-        
-        // 2. CONFLICT CHECK
-        if (foremanId && start && end) {
-            const conflict = db.jobs.find(j => 
-                j.foremanId == foremanId && 
-                j.id != id && 
-                j.status !== 'Done' &&
-                ((start >= j.start && start < j.end) || (end > j.start && end <= j.end))
-            );
-            if (conflict) return notify("Double Booking Conflict!");
-        }
-
-        const obj = {
-            id: id === "NEW" ? Date.now() : Number(id),
-            name, value: val, status: document.getElementById('j_status').value,
-            start, end,
-            foremanId: Number(foremanId), // FORCE NUMBER
-            address: document.getElementById('j_address').value
-        };
-
-        // 3. Update Local
-        if(id === "NEW") db.jobs.push(obj);
-        else { const idx = db.jobs.findIndex(x => x.id == id); if(idx !== -1) db.jobs[idx] = obj; }
-        
-        saveData(); closeModals(); notify("Job Saved");
+    // --- COSTING LOGIC ---
+    function openCostModal(jid) {
+        document.getElementById('modalCost').style.display='flex';
+        document.getElementById('cost_jid').value=jid;
+        const s=document.getElementById('cost_mat'); s.innerHTML=""; db.catalog.forEach(c=>s.innerHTML+=`<option value="${c.id}">${c.name} ($${c.cost})</option>`);
+        const l=document.getElementById('cost_labor'); l.innerHTML=""; db.team.forEach(t=>l.innerHTML+=`<option value="${t.id}">${t.name} ($${t.rate||0}/hr)</option>`);
+        renderCostList(jid);
     }
 
+    function addMaterial() {
+        const jid=document.getElementById('cost_jid').value; const mid=document.getElementById('cost_mat').value; const qty=Number(document.getElementById('cost_mqty').value);
+        const j=db.jobs.find(x=>x.id==jid); const item=db.catalog.find(c=>c.id==mid);
+        if(!j.expenses) j.expenses=[];
+        j.expenses.push({name:item.name, qty, cost:item.cost, total:item.cost*qty});
+        saveData(); renderCostList(jid);
+    }
+
+    function addLabor() {
+        const jid=document.getElementById('cost_jid').value; const uid=document.getElementById('cost_labor').value; const qty=Number(document.getElementById('cost_lqty').value);
+        const j=db.jobs.find(x=>x.id==jid); const user=db.team.find(u=>u.id==uid);
+        if(!j.labor) j.labor=[];
+        j.labor.push({name:user.name, hours:qty, rate:user.rate, total:user.rate*qty});
+        saveData(); renderCostList(jid);
+    }
+
+    function removeItem(jid, idx, type) {
+        const j=db.jobs.find(x=>x.id==jid);
+        if(type==='mat') j.expenses.splice(idx,1); else j.labor.splice(idx,1);
+        saveData(); renderCostList(jid);
+    }
+
+    function renderCostList(jid) {
+        const j=db.jobs.find(x=>x.id==jid);
+        const list=document.getElementById('cost-list'); list.innerHTML="";
+        let total = 0;
+
+        (j.expenses || []).forEach((x,i) => { total+=x.total; list.innerHTML+=`<tr><td>${x.name} (Mat)</td><td>${x.qty}</td><td>$${x.total}</td><td><i class="fas fa-trash" style="color:red;cursor:pointer" onclick="removeItem(${jid},${i},'mat')"></i></td></tr>`; });
+        (j.labor || []).forEach((x,i) => { total+=x.total; list.innerHTML+=`<tr><td>${x.name} (Lab)</td><td>${x.hours}h</td><td>$${x.total}</td><td><i class="fas fa-trash" style="color:red;cursor:pointer" onclick="removeItem(${jid},${i},'lab')"></i></td></tr>`; });
+
+        document.getElementById('cost-total').innerText="$"+total;
+    }
+
+    // --- BOILERPLATE ---
+    function saveJob() { const id=document.getElementById('j_id').value; const obj={id:id=="NEW"?Date.now():Number(id), name:document.getElementById('j_name').value, value:Number(document.getElementById('j_val').value), status:document.getElementById('j_status').value, start:document.getElementById('j_start').value, end:document.getElementById('j_end').value, foremanId:Number(document.getElementById('j_foreman').value), address:document.getElementById('j_address').value, expenses:id!="NEW"?db.jobs.find(x=>x.id==id)?.expenses||[]:[], labor:id!="NEW"?db.jobs.find(x=>x.id==id)?.labor||[]:[]}; if(id=="NEW") db.jobs.push(obj); else db.jobs[db.jobs.findIndex(x=>x.id==id)]=obj; saveData(); closeModals(); }
     function saveTeam(){ const id=document.getElementById('t_id').value; const obj={id:id=="NEW"?Date.now():Number(id),name:document.getElementById('t_name').value,role:document.getElementById('t_role').value,rate:Number(document.getElementById('t_rate').value),email:document.getElementById('t_email').value}; if(id=="NEW")db.team.push(obj); else db.team[db.team.findIndex(x=>x.id==id)]=obj; saveData(); closeModals(); }
     function saveCatalog(){ const id=document.getElementById('c_id').value; const obj={id:id=="NEW"?Date.now():Number(id),name:document.getElementById('c_name').value,vendor:document.getElementById('c_vendor').value,cost:Number(document.getElementById('c_cost').value)}; if(id=="NEW")db.catalog.push(obj); else db.catalog[db.catalog.findIndex(x=>x.id==id)]=obj; saveData(); closeModals(); }
-    function saveProfile() { const name = document.getElementById('pf_name').value; const email = document.getElementById('pf_email').value; const pass = document.getElementById('pf_pass').value; const idx = db.team.findIndex(t => t.id === currentUser.id); if(idx !== -1) { db.team[idx].name = name; db.team[idx].email = email; } const user = auth.currentUser; user.updateEmail(email).then(() => { if(pass) user.updatePassword(pass).then(() => alert("Password updated")); saveData(); closeModals(); notify("Profile Updated"); }).catch(e => alert("Re-login to update.")); }
+    function saveProfile() { const name = document.getElementById('pf_name').value; const email = document.getElementById('pf_email').value; const pass = document.getElementById('pf_pass').value; const idx = db.team.findIndex(t => t.id === currentUser.id); if(idx !== -1) { db.team[idx].name = name; db.team[idx].email = email; } const user = auth.currentUser; user.updateEmail(email).then(() => { if(pass) user.updatePassword(pass).then(() => alert("Password updated")); saveData(); closeModals(); notify("Profile Updated"); }).catch(e => alert("Re-login required.")); }
 
     function delJob(id){if(confirm('Delete?')){db.jobs=db.jobs.filter(x=>x.id!=id);saveData();}}
     function delTeam(id){if(confirm('Delete?')){db.team=db.team.filter(x=>x.id!=id);saveData();}}
     function delCatalog(id){if(confirm('Delete?')){db.catalog=db.catalog.filter(x=>x.id!=id);saveData();}}
 
-    // --- HELPERS ---
-    function setStatus(jid, s) { const j=db.jobs.find(x=>x.id==jid); if(j){j.status=s; saveData();} }
     function openJobModal(id=null){document.getElementById('modalJob').style.display='flex'; const s=document.getElementById('j_foreman'); s.innerHTML='<option value="">Unassigned</option>'; db.team.forEach(t=>s.innerHTML+=`<option value="${t.id}">${t.name}</option>`); if(id){const j=db.jobs.find(x=>x.id==id);document.getElementById('j_id').value=j.id;document.getElementById('j_name').value=j.name;document.getElementById('j_val').value=j.value;document.getElementById('j_status').value=j.status;document.getElementById('j_start').value=j.start;document.getElementById('j_end').value=j.end;document.getElementById('j_address').value=j.address||"";document.getElementById('j_foreman').value=j.foremanId;}else{document.getElementById('j_id').value="NEW";document.getElementById('j_name').value="";}}
     function openTeamModal(id=null){document.getElementById('modalTeam').style.display='flex';if(id){const t=db.team.find(x=>x.id==id);document.getElementById('t_id').value=t.id;document.getElementById('t_name').value=t.name;document.getElementById('t_role').value=t.role;document.getElementById('t_rate').value=t.rate;document.getElementById('t_email').value=t.email;}else{document.getElementById('t_id').value="NEW";}}
     function openCatalogModal(id=null){document.getElementById('modalCat').style.display='flex';if(id){const c=db.catalog.find(x=>x.id==id);document.getElementById('c_id').value=c.id;document.getElementById('c_name').value=c.name;document.getElementById('c_vendor').value=c.vendor;document.getElementById('c_cost').value=c.cost;}else{document.getElementById('c_id').value="NEW";}}
@@ -482,12 +536,10 @@
     function nav(v,e){document.querySelectorAll('.view-section').forEach(x=>x.classList.remove('active')); document.getElementById('view-'+v).classList.add('active'); document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); if(e)e.classList.add('active'); if(v=='calendar')setTimeout(()=>calendar.render(),200);}
     function closeModals(){document.querySelectorAll('.modal-overlay').forEach(e=>e.style.display='none');}
     function notify(m){const d=document.createElement('div');d.className='toast';d.innerText=m;document.getElementById('toast-container').appendChild(d);setTimeout(()=>d.remove(),3000);}
-    
-    // DATA SAVER (CONVERTS ARRAYS TO OBJECTS FOR FIREBASE)
     function saveData(){dbRef.ref().set(arrToObj(db)); if(currentUser.role==='Admin') renderAdmin(); else renderCrew(); notify("Saved");}
     function arrToObj(d){return {jobs:arrObj(d.jobs), catalog:arrObj(d.catalog), team:arrObj(d.team)};}
     function arrObj(a){const o={}; a.forEach(x=>o[x.id]=x); return o;}
-    
+    function setStatus(jid, s) { const j=db.jobs.find(x=>x.id==jid); if(j){j.status=s; saveData();} }
     function initCalendar(){if(calendar)return; calendar=new FullCalendar.Calendar(document.getElementById('calendar'),{initialView:'dayGridMonth',events:db.jobs.filter(j=>j.start).map(j=>({title:j.name,start:j.start,end:j.end,color:j.status=='Scheduled'?'#f59e0b':'#7e22ce'})),eventClick:i=>openJobModal(Number(i.event.extendedProps.publicId))});calendar.render();}
 </script>
 </body>
