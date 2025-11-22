@@ -13,6 +13,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 
     <style>
         :root {
@@ -37,6 +38,26 @@
         #auth-screen { position: fixed; inset:0; background: var(--primary); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
         .login-card { background: white; padding: 40px; border-radius: 16px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
         .login-input { width: 100%; padding: 14px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; }
+        
+        /* --- CONSULTATION PAGE --- */
+        #consultation-screen { position: fixed; inset:0; background: var(--bg); z-index: 9998; display: none; overflow-y: auto; }
+        .consultation-container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+        .consultation-header { text-align: center; margin-bottom: 40px; }
+        .consultation-header h1 { color: var(--primary); font-size: 2rem; margin-bottom: 10px; }
+        .consultation-form { background: var(--surface); padding: 30px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text); font-size: 0.9rem; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 16px; }
+        .form-group textarea { min-height: 120px; resize: vertical; }
+        .file-upload-area { border: 2px dashed var(--border); border-radius: 8px; padding: 20px; text-align: center; background: #f8fafc; cursor: pointer; transition: 0.2s; }
+        .file-upload-area:hover { border-color: var(--accent); background: #f0f4f8; }
+        .file-upload-area input[type="file"] { display: none; }
+        .file-preview { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+        .file-preview-item { position: relative; width: 100px; height: 100px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+        .file-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+        .file-preview-item .remove-btn { position: absolute; top: 5px; right: 5px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+        .back-to-login { text-align: center; margin-top: 20px; }
+        .back-to-login a { color: var(--accent); text-decoration: none; font-weight: 600; }
 
         /* --- APP LAYOUT --- */
         #app-container { display: none; width: 100%; height: 100%; }
@@ -143,6 +164,83 @@
         <input type="password" id="password" class="login-input" placeholder="Password">
         <button class="btn btn-primary" style="width:100%; padding: 14px;" onclick="authLogin()">Sign In</button>
         <div style="margin-top:25px; font-size:0.85rem; cursor:pointer; color:var(--text-light);" onclick="authRegister()">Initialize Admin Account</div>
+        <div style="margin-top:20px; padding-top:20px; border-top:1px solid var(--border);">
+            <button class="btn btn-outline" style="width:100%; padding: 14px;" onclick="showConsultation()">Schedule a Consultation</button>
+        </div>
+    </div>
+</div>
+
+<div id="consultation-screen">
+    <div class="consultation-container">
+        <div class="consultation-header">
+            <h1><i class="fas fa-calendar-check"></i> Schedule a Consultation</h1>
+            <p style="color:var(--text-light);">Fill out the form below and we'll get back to you soon!</p>
+        </div>
+        <div class="consultation-form">
+            <form id="consultationForm" onsubmit="submitConsultation(event)">
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" id="consult_name" required placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label>Email Address *</label>
+                    <input type="email" id="consult_email" required placeholder="john@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number *</label>
+                    <input type="tel" id="consult_phone" required placeholder="(555) 123-4567">
+                </div>
+                <div class="form-group">
+                    <label>Project Address *</label>
+                    <input type="text" id="consult_address" required placeholder="123 Main St, City, State ZIP">
+                </div>
+                <div class="form-group">
+                    <label>Type of Service *</label>
+                    <select id="consult_service" required>
+                        <option value="">Select a service...</option>
+                        <option value="New Construction">New Construction</option>
+                        <option value="Renovation">Renovation</option>
+                        <option value="Remodeling">Remodeling</option>
+                        <option value="Roofing">Roofing</option>
+                        <option value="Siding">Siding</option>
+                        <option value="Windows & Doors">Windows & Doors</option>
+                        <option value="Deck & Patio">Deck & Patio</option>
+                        <option value="Kitchen">Kitchen</option>
+                        <option value="Bathroom">Bathroom</option>
+                        <option value="Basement">Basement</option>
+                        <option value="Electrical">Electrical</option>
+                        <option value="Plumbing">Plumbing</option>
+                        <option value="HVAC">HVAC</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Project Details *</label>
+                    <textarea id="consult_details" required placeholder="Please describe your project in detail..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Project Photos (Optional)</label>
+                    <div class="file-upload-area" onclick="document.getElementById('consult_images').click()">
+                        <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--accent); margin-bottom:10px;"></i>
+                        <p style="margin:0; color:var(--text-light);">Click to upload photos or drag and drop</p>
+                        <p style="margin:5px 0 0 0; font-size:0.8rem; color:var(--text-light);">PNG, JPG up to 5MB each</p>
+                        <input type="file" id="consult_images" multiple accept="image/*" onchange="handleImageUpload(event)">
+                    </div>
+                    <div id="imagePreview" class="file-preview"></div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:30px;">
+                    <button type="submit" class="btn btn-primary" style="flex:1; padding:14px;">
+                        <i class="fas fa-paper-plane"></i> Submit Consultation Request
+                    </button>
+                    <button type="button" class="btn btn-outline" onclick="hideConsultation()" style="padding:14px;">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+        <div class="back-to-login">
+            <a href="#" onclick="hideConsultation(); return false;"><i class="fas fa-arrow-left"></i> Back to Login</a>
+        </div>
     </div>
 </div>
 
@@ -264,6 +362,11 @@
 <div id="modalJob" class="modal-overlay">
     <div class="modal">
         <h2>Job Record</h2>
+        <div id="consultation-info" style="display:none; background:#e0f2fe; padding:15px; border-radius:8px; margin-bottom:20px; border-left:4px solid var(--accent);">
+            <div style="font-weight:700; margin-bottom:10px; color:var(--primary);"><i class="fas fa-info-circle"></i> Consultation Request</div>
+            <div id="consultation-details" style="font-size:0.9rem; line-height:1.6;"></div>
+            <div id="consultation-images" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:15px;"></div>
+        </div>
         <input type="hidden" id="j_id">
         <label>Project Name</label><input type="text" id="j_name">
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
@@ -329,6 +432,7 @@
     try { firebase.initializeApp(firebaseConfig); } catch(e){console.error("Firebase Error:", e);}
     const auth = firebase.auth();
     const dbRef = firebase.database();
+    const storageRef = firebase.storage ? firebase.storage() : null;
 
     let db = { jobs: [], catalog: [], team: [] };
     let currentUser = null;
@@ -338,9 +442,13 @@
     auth.onAuthStateChanged(user => {
         if(user) {
             document.getElementById('auth-screen').style.display='none';
+            document.getElementById('consultation-screen').style.display='none';
             initApp(user.email);
         } else {
-            document.getElementById('auth-screen').style.display='flex';
+            // Only show auth screen if consultation screen is not visible
+            if(document.getElementById('consultation-screen').style.display !== 'block') {
+                document.getElementById('auth-screen').style.display='flex';
+            }
             document.getElementById('app-container').style.display='none';
         }
     });
@@ -348,6 +456,114 @@
     function authLogin() { const e=document.getElementById('email').value.trim(); const p=document.getElementById('password').value.trim(); if(!e||!p) return alert("Enter credentials"); auth.signInWithEmailAndPassword(e,p).catch(e=>alert(e.message)); }
     function authRegister() { const e=document.getElementById('email').value.trim(); const p=document.getElementById('password').value.trim(); if(!e||!p) return alert("Enter credentials"); auth.createUserWithEmailAndPassword(e,p).catch(e=>alert(e.message)); }
     function authLogout() { auth.signOut(); location.reload(); }
+    
+    // --- CONSULTATION FUNCTIONS ---
+    let consultationImages = [];
+    
+    function showConsultation() {
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('consultation-screen').style.display = 'block';
+    }
+    
+    function hideConsultation() {
+        document.getElementById('consultation-screen').style.display = 'none';
+        document.getElementById('auth-screen').style.display = 'flex';
+        // Reset form
+        document.getElementById('consultationForm').reset();
+        consultationImages = [];
+        document.getElementById('imagePreview').innerHTML = '';
+    }
+    
+    function handleImageUpload(event) {
+        const files = Array.from(event.target.files);
+        files.forEach(file => {
+            if (file.size > 5 * 1024 * 1024) {
+                alert(`File ${file.name} is too large. Maximum size is 5MB.`);
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                consultationImages.push({
+                    name: file.name,
+                    data: e.target.result,
+                    size: file.size
+                });
+                updateImagePreview();
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+    
+    function updateImagePreview() {
+        const preview = document.getElementById('imagePreview');
+        preview.innerHTML = '';
+        consultationImages.forEach((img, index) => {
+            const item = document.createElement('div');
+            item.className = 'file-preview-item';
+            item.innerHTML = `
+                <img src="${img.data}" alt="${img.name}">
+                <button type="button" class="remove-btn" onclick="removeImage(${index})" title="Remove">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            preview.appendChild(item);
+        });
+    }
+    
+    function removeImage(index) {
+        consultationImages.splice(index, 1);
+        updateImagePreview();
+    }
+    
+    function submitConsultation(event) {
+        event.preventDefault();
+        
+        const name = document.getElementById('consult_name').value.trim();
+        const email = document.getElementById('consult_email').value.trim();
+        const phone = document.getElementById('consult_phone').value.trim();
+        const address = document.getElementById('consult_address').value.trim();
+        const service = document.getElementById('consult_service').value;
+        const details = document.getElementById('consult_details').value.trim();
+        
+        if (!name || !email || !phone || !address || !service || !details) {
+            alert('Please fill in all required fields.');
+            return;
+        }
+        
+        // Create job object with Lead status
+        const jobData = {
+            id: Date.now(),
+            name: name, // Project name = user's name
+            value: 0,
+            status: 'Lead',
+            address: address,
+            start: '',
+            end: '',
+            foremanId: null,
+            tasks: [],
+            expenses: [],
+            labor: [],
+            consultationData: {
+                email: email,
+                phone: phone,
+                serviceType: service,
+                projectDetails: details,
+                submittedAt: new Date().toISOString(),
+                images: consultationImages
+            }
+        };
+        
+        // Save to Firebase (public write - no auth required for database)
+        dbRef.ref('jobs').child(jobData.id).set(jobData)
+            .then(() => {
+                alert('Thank you! Your consultation request has been submitted. We will contact you soon.');
+                hideConsultation();
+            })
+            .catch(error => {
+                console.error('Error submitting consultation:', error);
+                alert('There was an error submitting your request. Please try again.');
+            });
+    }
 
     // --- INIT ---
     function initApp(email) {
@@ -674,6 +890,11 @@
         document.getElementById('modalJob').style.display='flex'; 
         const s=document.getElementById('j_foreman'); s.innerHTML='<option value="">Unassigned</option>'; 
         db.team.forEach(t=>s.innerHTML+=`<option value="${t.id}">${t.name}</option>`); 
+        
+        const consultationInfo = document.getElementById('consultation-info');
+        const consultationDetails = document.getElementById('consultation-details');
+        const consultationImages = document.getElementById('consultation-images');
+        
         if(id){
             const j=db.jobs.find(x=>x.id==id);
             document.getElementById('j_id').value=j.id;
@@ -685,6 +906,33 @@
             document.getElementById('j_address').value=j.address||"";
             document.getElementById('j_foreman').value=j.foremanId;
             document.getElementById('j_tasks').value=(j.tasks||[]).map(t=>t.desc).join(', ');
+            
+            // Show consultation info if it exists
+            if(j.consultationData) {
+                consultationInfo.style.display = 'block';
+                consultationDetails.innerHTML = `
+                    <div><strong>Email:</strong> <a href="mailto:${j.consultationData.email}">${j.consultationData.email}</a></div>
+                    <div><strong>Phone:</strong> <a href="tel:${j.consultationData.phone}">${j.consultationData.phone}</a></div>
+                    <div><strong>Service Type:</strong> ${j.consultationData.serviceType}</div>
+                    <div><strong>Project Details:</strong> ${j.consultationData.projectDetails}</div>
+                    <div style="margin-top:8px; font-size:0.85rem; color:var(--text-light);"><strong>Submitted:</strong> ${new Date(j.consultationData.submittedAt).toLocaleString()}</div>
+                `;
+                
+                // Display images if any
+                consultationImages.innerHTML = '';
+                if(j.consultationData.images && j.consultationData.images.length > 0) {
+                    j.consultationData.images.forEach((img, idx) => {
+                        const imgDiv = document.createElement('div');
+                        imgDiv.style.cssText = 'width:100px; height:100px; border-radius:8px; overflow:hidden; border:1px solid var(--border); cursor:pointer;';
+                        imgDiv.innerHTML = `<img src="${img.data}" alt="${img.name}" style="width:100%; height:100%; object-fit:cover;" onclick="window.open('${img.data}', '_blank')">`;
+                        consultationImages.appendChild(imgDiv);
+                    });
+                } else {
+                    consultationImages.innerHTML = '<div style="color:var(--text-light); font-size:0.85rem;">No images provided</div>';
+                }
+            } else {
+                consultationInfo.style.display = 'none';
+            }
         } else {
             document.getElementById('j_id').value="NEW";
             document.getElementById('j_name').value="";
@@ -695,6 +943,7 @@
             document.getElementById('j_address').value="";
             document.getElementById('j_foreman').value="";
             document.getElementById('j_tasks').value="";
+            consultationInfo.style.display = 'none';
         }
     }
     
