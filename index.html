@@ -82,7 +82,7 @@
 
         /* --- DASHBOARD --- */
         .section-header { font-size: 0.75rem; font-weight: 800; color: var(--text-light); text-transform: uppercase; margin-bottom: 15px; display: block; margin-top: 10px; }
-        .card-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .stat-card { background: var(--surface); padding: 24px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; }
         .stat-val { font-size: 1.8rem; font-weight: 800; color: var(--primary); margin: 8px 0; }
         .stat-lbl { font-size: 0.75rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; }
@@ -219,6 +219,22 @@
                     <textarea id="consult_details" required placeholder="Please describe your project in detail..."></textarea>
                 </div>
                 <div class="form-group">
+                    <label>Where did you hear about us? *</label>
+                    <select id="consult_referral" required onchange="handleReferralChange()">
+                        <option value="">Select an option...</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="Instagram">Instagram</option>
+                        <option value="Twitter/X">Twitter/X</option>
+                        <option value="LinkedIn">LinkedIn</option>
+                        <option value="TikTok">TikTok</option>
+                        <option value="YouTube">YouTube</option>
+                        <option value="Google Search">Google Search</option>
+                        <option value="Referral">Referral (Friend/Family)</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="text" id="consult_referral_other" placeholder="Please specify..." style="display:none; margin-top:10px;" />
+                </div>
+                <div class="form-group">
                     <label>Project Photos (Optional)</label>
                     <div class="file-upload-area" onclick="document.getElementById('consult_images').click()">
                         <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--accent); margin-bottom:10px;"></i>
@@ -293,15 +309,21 @@
                     <div class="stat-card"><div class="stat-lbl">WIP (Active)</div><div class="stat-val" style="color:var(--warning)" id="op-wip">0</div></div>
                     <div class="stat-card"><div class="stat-lbl">Completed</div><div class="stat-val" style="color:var(--success)" id="op-done">0</div></div>
                     <div class="stat-card"><div class="stat-lbl">Avg Ticket</div><div class="stat-val" id="op-ticket">$0</div></div>
+                    <div class="stat-card"><div class="stat-lbl">Lead Generation</div><div class="stat-val" style="color:var(--accent)" id="op-lead-gen">0</div></div>
                 </div>
 
                 <!-- <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
                     <div class="chart-box"><canvas id="finChart"></canvas></div>
                     <div class="chart-box"><canvas id="funnelChart"></canvas></div>
                 </div> -->
-                <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
+                <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px; margin-bottom:20px;">
                     <div style="background:white; padding:15px; border:1px solid var(--border); border-radius:8px; height:350px; position:relative; overflow:hidden;"><canvas id="finChart" style="max-width:100%; max-height:100%;"></canvas></div>
                     <div style="background:white; padding:15px; border:1px solid var(--border); border-radius:8px; height:350px; position:relative; overflow:hidden;"><canvas id="funnelChart" style="max-width:100%; max-height:100%;"></canvas></div>
+                </div>
+                
+                <span class="section-header">Lead Generation Sources</span>
+                <div style="display:grid; grid-template-columns: 1fr; gap:20px;">
+                    <div style="background:white; padding:15px; border:1px solid var(--border); border-radius:8px; height:350px; position:relative; overflow:hidden;"><canvas id="referralChart" style="max-width:100%; max-height:100%;"></canvas></div>
                 </div>
             </div>
 
@@ -436,7 +458,7 @@
 
     let db = { jobs: [], catalog: [], team: [] };
     let currentUser = null;
-    let calendar, finChart, funnelChart;
+    let calendar, finChart, funnelChart, referralChart;
 
     // --- AUTH ---
     auth.onAuthStateChanged(user => {
@@ -472,6 +494,20 @@
         document.getElementById('consultationForm').reset();
         consultationImages = [];
         document.getElementById('imagePreview').innerHTML = '';
+        document.getElementById('consult_referral_other').style.display = 'none';
+    }
+    
+    function handleReferralChange() {
+        const referralSelect = document.getElementById('consult_referral');
+        const otherInput = document.getElementById('consult_referral_other');
+        if(referralSelect.value === 'Other') {
+            otherInput.style.display = 'block';
+            otherInput.required = true;
+        } else {
+            otherInput.style.display = 'none';
+            otherInput.required = false;
+            otherInput.value = '';
+        }
     }
     
     function handleImageUpload(event) {
@@ -524,11 +560,20 @@
         const address = document.getElementById('consult_address').value.trim();
         const service = document.getElementById('consult_service').value;
         const details = document.getElementById('consult_details').value.trim();
+        const referral = document.getElementById('consult_referral').value;
+        const referralOther = document.getElementById('consult_referral_other').value.trim();
         
-        if (!name || !email || !phone || !address || !service || !details) {
+        if (!name || !email || !phone || !address || !service || !details || !referral) {
             alert('Please fill in all required fields.');
             return;
         }
+        
+        if (referral === 'Other' && !referralOther) {
+            alert('Please specify where you heard about us.');
+            return;
+        }
+        
+        const referralSource = referral === 'Other' ? referralOther : referral;
         
         // Create job object with Lead status
         const jobData = {
@@ -548,6 +593,7 @@
                 phone: phone,
                 serviceType: service,
                 projectDetails: details,
+                referralSource: referralSource,
                 submittedAt: new Date().toISOString(),
                 images: consultationImages
             }
@@ -732,12 +778,6 @@
 
     // --- HELPERS ---
     function safeNum(v) { return Number(v) || 0; }
-    function capitalizeWords(str) {
-        if(!str) return '';
-        return str.split(' ').map(word => 
-            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-        ).join(' ');
-    }
     function getFin(j) {
         const mat = (j.expenses || []).reduce((s, x) => s + safeNum(x.total), 0);
         const lab = (j.labor || []).reduce((s, x) => s + safeNum(x.total), 0);
@@ -779,7 +819,11 @@
         if(opWip) opWip.innerText = active.length;
         const opDone = document.getElementById('op-done');
         if(opDone) opDone.innerText = db.jobs.filter(j=>j.status==='Done').length;
-        // op-win element doesn't exist in HTML, so we skip it
+        const opLeadGen = document.getElementById('op-lead-gen');
+        if(opLeadGen) {
+            const leadJobs = db.jobs.filter(j => j.status === 'Lead' && j.consultationData && j.consultationData.referralSource);
+            opLeadGen.innerText = leadJobs.length;
+        }
 
         // Initialize charts after a short delay to ensure DOM is ready
         setTimeout(() => {
@@ -876,6 +920,72 @@
             } catch(e) {
                 console.error('Error creating funnelChart:', e);
             }
+            
+            // Create referral source chart
+            const canvasRef = document.getElementById('referralChart');
+            if(!canvasRef) {
+                console.error('referralChart canvas not found');
+                return;
+            }
+            
+            // Destroy existing chart if it exists
+            if(referralChart) {
+                try {
+                    referralChart.destroy();
+                } catch(e) {}
+            }
+            
+            try {
+                // Calculate referral source statistics
+                const leadJobs = db.jobs.filter(j => j.status === 'Lead' && j.consultationData && j.consultationData.referralSource);
+                const referralCounts = {};
+                leadJobs.forEach(job => {
+                    const source = job.consultationData.referralSource;
+                    referralCounts[source] = (referralCounts[source] || 0) + 1;
+                });
+                
+                const sources = Object.keys(referralCounts);
+                const counts = Object.values(referralCounts);
+                
+                // Color palette for different sources
+                const colors = [
+                    '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+                    '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1'
+                ];
+                
+                const ctxRef = canvasRef.getContext('2d');
+                referralChart = new Chart(ctxRef, { 
+                    type: 'doughnut', 
+                    data: { 
+                        labels: sources.length > 0 ? sources : ['No Data'],
+                        datasets:[{
+                            data: sources.length > 0 ? counts : [1],
+                            backgroundColor: sources.length > 0 ? sources.map((_, i) => colors[i % colors.length]) : ['#cbd5e1']
+                        }] 
+                    }, 
+                    options:{
+                        maintainAspectRatio:false,
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'right'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Lead Sources',
+                                font: {
+                                    size: 16,
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    } 
+                });
+                console.log('Referral chart created successfully');
+            } catch(e) {
+                console.error('Error creating referralChart:', e);
+            }
         }, 500);
     }
     
@@ -888,8 +998,7 @@
             const fName = db.team.find(t => t.id == j.foremanId)?.name || "Unassigned";
             const fin = getFin(j);
             const margin = j.value>0 ? Math.round((fin.profit/j.value)*100) : 0;
-            const displayName = capitalizeWords(j.name);
-            l.innerHTML += `<div class="list-card"><div style="flex:1"><span class="badge badge-${j.status}">${j.status}</span><div style="font-weight:700; margin-top:5px;">${displayName}</div><div style="font-size:0.8rem; color:var(--text-light);">${fName}</div></div><div class="mobile-hide" style="text-align:right; margin:0 20px;"><div style="font-weight:700; color:var(--primary);">$${safeNum(j.value).toLocaleString()}</div><div style="font-size:0.75rem; color:var(--danger)">Cost: $${fin.cost.toLocaleString()}</div><div style="font-size:0.75rem; color:${fin.profit>=0?'var(--success)':'var(--danger)'}">${margin}% Margin</div></div><div style="display:flex; gap:8px;"><button class="btn btn-outline btn-sm" onclick="openCostModal(${j.id})"><i class="fas fa-calculator"></i> Costs</button><button class="btn btn-outline btn-sm" onclick="openJobModal(${j.id})"><i class="fas fa-pen"></i></button><button class="btn btn-danger btn-sm" onclick="delJob(${j.id})"><i class="fas fa-trash"></i></button></div></div>`;
+            l.innerHTML += `<div class="list-card"><div style="flex:1"><span class="badge badge-${j.status}">${j.status}</span><div style="font-weight:700; margin-top:5px;">${j.name}</div><div style="font-size:0.8rem; color:var(--text-light);">${fName}</div></div><div class="mobile-hide" style="text-align:right; margin:0 20px;"><div style="font-weight:700; color:var(--primary);">$${safeNum(j.value).toLocaleString()}</div><div style="font-size:0.75rem; color:var(--danger)">Cost: $${fin.cost.toLocaleString()}</div><div style="font-size:0.75rem; color:${fin.profit>=0?'var(--success)':'var(--danger)'}">${margin}% Margin</div></div><div style="display:flex; gap:8px;"><button class="btn btn-outline btn-sm" onclick="openCostModal(${j.id})"><i class="fas fa-calculator"></i> Costs</button><button class="btn btn-outline btn-sm" onclick="openJobModal(${j.id})"><i class="fas fa-pen"></i></button><button class="btn btn-danger btn-sm" onclick="delJob(${j.id})"><i class="fas fa-trash"></i></button></div></div>`;
         });
     }
     
@@ -1034,6 +1143,7 @@
                     <div><strong>Phone:</strong> <a href="tel:${j.consultationData.phone}">${j.consultationData.phone}</a></div>
                     <div><strong>Service Type:</strong> ${j.consultationData.serviceType}</div>
                     <div><strong>Project Details:</strong> ${j.consultationData.projectDetails}</div>
+                    ${j.consultationData.referralSource ? `<div><strong>Referral Source:</strong> ${j.consultationData.referralSource}</div>` : ''}
                     <div style="margin-top:8px; font-size:0.85rem; color:var(--text-light);"><strong>Submitted:</strong> ${new Date(j.consultationData.submittedAt).toLocaleString()}</div>
                 `;
                 
