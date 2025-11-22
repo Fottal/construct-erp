@@ -194,9 +194,13 @@
                     <div class="stat-card"><div class="stat-lbl">Avg Ticket</div><div class="stat-val" id="op-ticket">$0</div></div>
                 </div>
 
-                <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
+                <!-- <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
                     <div class="chart-box"><canvas id="finChart"></canvas></div>
                     <div class="chart-box"><canvas id="funnelChart"></canvas></div>
+                </div> -->
+                <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px; height:350px;">
+                    <div style="background:white; padding:15px; border:1px solid var(--border); border-radius:8px;"><canvas id="finChart"></canvas></div>
+                    <div style="background:white; padding:15px; border:1px solid var(--border); border-radius:8px;"><canvas id="funnelChart"></canvas></div>
                 </div>
             </div>
 
@@ -564,3 +568,4 @@
 </script>
 </body>
 </html>
+
