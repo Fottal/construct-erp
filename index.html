@@ -686,12 +686,50 @@
             document.getElementById('j_foreman').value=j.foremanId;
             document.getElementById('j_tasks').value=(j.tasks||[]).map(t=>t.desc).join(', ');
         } else {
-            document.getElementById('j_id').value="NEW"; document.getElementById('j_name').value=""; document.getElementById('j_val').value=""; document.getElementById('j_tasks').value="";
+            document.getElementById('j_id').value="NEW";
+            document.getElementById('j_name').value="";
+            document.getElementById('j_val').value="";
+            document.getElementById('j_status').value="Lead";
+            document.getElementById('j_start').value="";
+            document.getElementById('j_end').value="";
+            document.getElementById('j_address').value="";
+            document.getElementById('j_foreman').value="";
+            document.getElementById('j_tasks').value="";
         }
     }
     
-    function openTeamModal(id=null){document.getElementById('modalTeam').style.display='flex';if(id){const t=db.team.find(x=>x.id==id);document.getElementById('t_id').value=t.id;document.getElementById('t_name').value=t.name;document.getElementById('t_role').value=t.role;document.getElementById('t_rate').value=t.rate;document.getElementById('t_email').value=t.email;}else{document.getElementById('t_id').value="NEW";}}
-    function openCatalogModal(id=null){document.getElementById('modalCat').style.display='flex';if(id){const c=db.catalog.find(x=>x.id==id);document.getElementById('c_id').value=c.id;document.getElementById('c_name').value=c.name;document.getElementById('c_vendor').value=c.vendor;document.getElementById('c_cost').value=c.cost;}else{document.getElementById('c_id').value="NEW";}}
+    function openTeamModal(id=null){
+        document.getElementById('modalTeam').style.display='flex';
+        if(id){
+            const t=db.team.find(x=>x.id==id);
+            document.getElementById('t_id').value=t.id;
+            document.getElementById('t_name').value=t.name;
+            document.getElementById('t_role').value=t.role;
+            document.getElementById('t_rate').value=t.rate;
+            document.getElementById('t_email').value=t.email;
+        }else{
+            document.getElementById('t_id').value="NEW";
+            document.getElementById('t_name').value="";
+            document.getElementById('t_role').value="Admin";
+            document.getElementById('t_rate').value="";
+            document.getElementById('t_email').value="";
+        }
+    }
+    function openCatalogModal(id=null){
+        document.getElementById('modalCat').style.display='flex';
+        if(id){
+            const c=db.catalog.find(x=>x.id==id);
+            document.getElementById('c_id').value=c.id;
+            document.getElementById('c_name').value=c.name;
+            document.getElementById('c_vendor').value=c.vendor;
+            document.getElementById('c_cost').value=c.cost;
+        }else{
+            document.getElementById('c_id').value="NEW";
+            document.getElementById('c_name').value="";
+            document.getElementById('c_vendor').value="";
+            document.getElementById('c_cost').value="";
+        }
+    }
     function openProfileModal() { document.getElementById('modalProfile').style.display='flex'; document.getElementById('pf_name').value = currentUser.name; document.getElementById('pf_email').value = currentUser.email; }
 
     function nav(v,e){
